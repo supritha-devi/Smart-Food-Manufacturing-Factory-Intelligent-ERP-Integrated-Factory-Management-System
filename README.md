@@ -1,6 +1,11 @@
 # Smart Food Manufacturing Factory
 ### Integrated ERP & Intelligent Factory Management System
 
+##Demo Link
+
+https://Supritha07.pythonanywhere.com
+
+
 **A Centralized, Automated and Intelligent Enterprise Resource Planning Platform for Food Manufacturing Industries.**
 
 ---
