@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block title %}{{ 'Add Department' if creating else 'Edit Department' }}{% endblock %}
+{% block content %}
+<div class="page-heading"><div><p class="eyebrow">Factory Structure</p><h1>{{ 'Add Department' if creating else 'Edit ' ~ department.name }}</h1></div><a class="btn btn-secondary-soft" href="{{ url_for('modules.factory_layout') }}">Back to Map</a></div>
+<div class="panel form-panel">
+  <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    {% if creating %}<div class="mb-3"><label class="form-label">Department code *</label><input class="form-control" name="code" required></div>{% endif %}
+    <div class="mb-3"><label class="form-label">Department name *</label><input class="form-control" name="name" value="{{ department.name if department else '' }}" required></div>
+    {% if creating %}<div class="mb-3"><label class="form-label">Department type *</label><select class="form-select" name="department_type" required><option value="PRODUCTION">Production</option><option value="WAREHOUSE">Warehouse</option><option value="QUALITY_CONTROL">Quality Control</option><option value="DISPATCH">Dispatch</option><option value="ADMINISTRATION">Administration</option></select></div>{% endif %}
+    <div class="mb-3"><label class="form-label">Status *</label><select class="form-select" name="status" required><option value="ACTIVE" {% if department and department.status=='ACTIVE' %}selected{% endif %}>Active</option><option value="INACTIVE" {% if department and department.status=='INACTIVE' %}selected{% endif %}>Inactive</option><option value="OPERATIONAL" {% if department and department.status=='OPERATIONAL' %}selected{% endif %}>Operational</option><option value="UNDER_MAINTENANCE" {% if department and department.status=='UNDER_MAINTENANCE' %}selected{% endif %}>Under Maintenance</option><option value="TEMPORARILY_CLOSED" {% if department and department.status=='TEMPORARILY_CLOSED' %}selected{% endif %}>Temporarily Closed</option></select></div>
+    {% if not creating or not department %}<div class="mb-3"><label class="form-label">Daily production target (batches)</label><input class="form-control" name="daily_target_batches" type="number" min="0" value="{{ department.daily_target_batches if department and department.daily_target_batches is defined else 0 }}"></div>{% endif %}
+    <div class="form-actions"><button class="btn btn-primary" type="submit">{{ 'Create Department' if creating else 'Save Department' }}</button></div>
+  </form>
+</div>
+{% endblock %}

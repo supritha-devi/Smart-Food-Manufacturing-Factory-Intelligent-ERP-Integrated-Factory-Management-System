@@ -1,0 +1,312 @@
+{% extends 'base.html' %}
+{% block title %}Sales & GST Billing - Smart Food Manufacturing Factory{% endblock %}
+{% block content %}
+<style>
+  .sales-hero {
+    background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
+    color: #FFFFFF;
+    border-radius: 14px;
+    padding: 20px 24px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.12);
+  }
+  .sales-kpi {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .sales-kpi:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(0,0,0,0.06);
+  }
+  .sales-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+  .sales-card {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+  }
+</style>
+
+<!-- Hero Header Banner -->
+<div class="sales-hero">
+  <div>
+    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+      <span style="background: rgba(34, 197, 94, 0.2); color: #86EFAC; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 9999px; text-transform: uppercase;">
+        Module 12
+      </span>
+      <span style="color: #94A3B8; font-size: 12px;">•</span>
+      <span style="color: #CBD5E1; font-size: 12.5px;">📍 Tamilnadu Commercial Desk</span>
+    </div>
+    <h1 style="font-size: 22px; font-weight: 800; margin: 0; color: #FFFFFF; letter-spacing: -0.01em;">
+      Sales Orders &amp; GST Invoicing
+    </h1>
+    <p style="color: #94A3B8; margin: 4px 0 0 0; font-size: 13.5px;">
+      Process snack retailer orders, generate GST tax invoices, and record customer payments in Indian Rupees (₹).
+    </p>
+  </div>
+  <div class="d-flex gap-2 flex-wrap">
+    {% if 'OWNER' in session.roles or 'FACTORY ADMIN' in session.roles %}
+    <a class="btn btn-primary fw-bold" href="{{ url_for('modules.sales_customer_create') }}" style="border-radius: 8px; font-size: 13px;">
+      + Add Customer
+    </a>
+    {% endif %}
+    <a class="btn btn-light fw-bold" href="{{ url_for('modules.finance_dashboard') }}" style="border-radius: 8px; font-size: 13px; color: #0F172A;">
+      💰 Finance &amp; Ledger
+    </a>
+  </div>
+</div>
+
+<!-- 4 Colored KPI Cards -->
+<div class="row g-3 mb-3">
+  <div class="col-md-3">
+    <div class="sales-kpi" style="border-left: 4px solid #3B82F6;">
+      <div class="sales-icon" style="background: #EFF6FF; color: #1D4ED8;">📝</div>
+      <div>
+        <small style="color: #64748B; font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 0.04em;">Sales Orders</small>
+        <div style="font-size: 20px; font-weight: 800; color: #0F172A;">{{ order_count }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="sales-kpi" style="border-left: 4px solid #F59E0B;">
+      <div class="sales-icon" style="background: #FEF3C7; color: #B45309;">⏳</div>
+      <div>
+        <small style="color: #64748B; font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 0.04em;">Submitted Orders</small>
+        <div style="font-size: 20px; font-weight: 800; color: #0F172A;">{{ submitted_count }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="sales-kpi" style="border-left: 4px solid #10B981;">
+      <div class="sales-icon" style="background: #ECFDF5; color: #047857;">🧾</div>
+      <div>
+        <small style="color: #64748B; font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 0.04em;">GST Invoices</small>
+        <div style="font-size: 20px; font-weight: 800; color: #0F172A;">{{ invoice_count }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="sales-kpi" style="border-left: 4px solid #8B5CF6;">
+      <div class="sales-icon" style="background: #F3E8FF; color: #6D28D9;">💵</div>
+      <div>
+        <small style="color: #64748B; font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 0.04em;">Collections Recorded</small>
+        <div style="font-size: 20px; font-weight: 800; color: #0F172A;">{{ payment_count }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <!-- Left Column: Sales Orders & Invoices -->
+  <div class="col-lg-8">
+    <div class="sales-card mb-3">
+      <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
+        <h3 class="m-0 fs-5 fw-bold text-dark">📋 Sales Orders &amp; Approvals</h3>
+        <span class="badge bg-light text-dark border">{{ orders|length }} Orders</span>
+      </div>
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead style="background: #F8FAFC; color: #475569; font-size: 12px; text-transform: uppercase;">
+            <tr>
+              <th style="padding: 12px 16px;">Order #</th>
+              <th>Customer</th>
+              <th>Sales Rep</th>
+              <th>Order Date</th>
+              <th>Total Amount</th>
+              <th>Status / Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for order in orders %}
+            <tr>
+              <td style="padding: 12px 16px;">
+                <strong class="text-dark">{{ order.order_number }}</strong>
+              </td>
+              <td>{{ order.customer_name or '—' }}</td>
+              <td><small class="text-muted">{{ order.salesman_name or '—' }}</small></td>
+              <td><small>{{ order.order_date }}</small></td>
+              <td><strong class="text-success">{{ order.total_paise | rupees }}</strong></td>
+              <td>
+                <span class="status {{ 'active' if order.status=='INVOICED' else 'inactive' }} me-2">
+                  {{ order.status }}
+                </span>
+                {% if 'OWNER' in session.roles or 'FACTORY ADMIN' in session.roles %}
+                  {% if order.status=='SUBMITTED' %}
+                  <form method="post" action="{{ url_for('modules.sales_order_approve', order_id=order.id) }}" class="d-inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                    <button class="btn btn-sm btn-primary fw-bold" style="border-radius: 6px;">Approve</button>
+                  </form>
+                  {% elif order.status=='APPROVED' %}
+                  <form method="post" action="{{ url_for('modules.sales_invoice_create', order_id=order.id) }}" class="d-inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                    <button class="btn btn-sm btn-secondary-soft fw-bold" style="border-radius: 6px;">Invoice</button>
+                  </form>
+                  {% endif %}
+                {% endif %}
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="6" class="text-center py-4 text-muted">No sales orders generated yet.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Invoices & Receivables -->
+    <div class="sales-card">
+      <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
+        <h3 class="m-0 fs-5 fw-bold text-dark">🧾 Tax Invoices &amp; Receivables</h3>
+        <span class="badge bg-light text-dark border">{{ invoices|length }} Invoices</span>
+      </div>
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead style="background: #F8FAFC; color: #475569; font-size: 12px; text-transform: uppercase;">
+            <tr>
+              <th style="padding: 12px 16px;">Invoice #</th>
+              <th>Customer</th>
+              <th>Invoice Total</th>
+              <th>Outstanding Balance</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for invoice in invoices %}
+            <tr>
+              <td style="padding: 12px 16px;">
+                <strong class="text-dark">{{ invoice.invoice_number }}</strong>
+              </td>
+              <td>{{ invoice.customer_name or '—' }}</td>
+              <td><strong class="text-dark">{{ invoice.total_paise | rupees }}</strong></td>
+              <td>
+                <span class="fw-bold {% if invoice.outstanding_paise > 0 %}text-danger{% else %}text-success{% endif %}">
+                  {{ invoice.outstanding_paise | rupees }}
+                </span>
+              </td>
+              <td>
+                <span class="badge {% if invoice.status == 'PAID' %}bg-success{% else %}bg-warning text-dark{% endif %}">
+                  {{ invoice.status }}
+                </span>
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="5" class="text-center py-4 text-muted">No tax invoices generated yet.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Column: Order Entry & Payment Collection Forms -->
+  <div class="col-lg-4">
+    <div class="sales-card p-3 mb-3">
+      <h3 class="fs-5 fw-bold text-dark mb-3">🛍️ Create Sales Order</h3>
+      <form method="post" action="{{ url_for('modules.sales_order_create') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        
+        <label class="form-label small text-muted text-uppercase fw-bold">Customer</label>
+        <select class="form-select mb-2" name="customer_id" required style="border-radius: 8px;">
+          <option value="">-- Choose Customer --</option>
+          {% for customer in customers %}
+          <option value="{{ customer.id }}">{{ customer.name }}</option>
+          {% endfor %}
+        </select>
+
+        <label class="form-label small text-muted text-uppercase fw-bold">Snack Product</label>
+        <select class="form-select mb-2" name="product_id" required style="border-radius: 8px;">
+          <option value="">-- Choose Product --</option>
+          {% for product in products %}
+          <option value="{{ product.id }}">{{ product.name }} ({{ product.selling_price_paise | rupees }})</option>
+          {% endfor %}
+        </select>
+
+        <label class="form-label small text-muted text-uppercase fw-bold">Quantity (Packets / Kg)</label>
+        <input class="form-control mb-2" name="quantity" type="number" min="0.001" step="0.001" placeholder="Quantity" required style="border-radius: 8px;">
+
+        <label class="form-label small text-muted text-uppercase fw-bold">Order Date</label>
+        <input class="form-control mb-2" name="order_date" type="date" required style="border-radius: 8px;">
+
+        <label class="form-label small text-muted text-uppercase fw-bold">Special Notes</label>
+        <textarea class="form-control mb-3" name="notes" rows="2" placeholder="e.g. Expedited delivery to Madurai depot" style="border-radius: 8px;"></textarea>
+
+        <button class="btn btn-primary w-100 fw-bold py-2" type="submit" style="border-radius: 8px;">
+          Submit Sales Order
+        </button>
+      </form>
+    </div>
+
+    <!-- Record Payment Form -->
+    <div class="sales-card p-3">
+      <h3 class="fs-5 fw-bold text-dark mb-3">💳 Record Payment Receipt</h3>
+      <form method="post" action="{{ url_for('modules.sales_payment_create') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        
+        <label class="form-label small text-muted text-uppercase fw-bold">Target Invoice</label>
+        <select class="form-select mb-2" name="invoice_id" required style="border-radius: 8px;">
+          <option value="">-- Select Pending Invoice --</option>
+          {% for invoice in invoices %}
+          {% if invoice.outstanding_paise > 0 %}
+          <option value="{{ invoice.id }}">{{ invoice.invoice_number }} (Due: {{ invoice.outstanding_paise | rupees }})</option>
+          {% endif %}
+          {% endfor %}
+        </select>
+
+        <label class="form-label small text-muted text-uppercase fw-bold">Amount in Paise (100 paise = ₹1.00)</label>
+        <input class="form-control mb-2" name="amount_paise" type="number" min="1" placeholder="e.g. 50000 (= ₹500.00)" required style="border-radius: 8px;">
+
+        <div class="row g-2 mb-2">
+          <div class="col-6">
+            <label class="form-label small text-muted text-uppercase fw-bold">Method</label>
+            <select class="form-select" name="payment_method" required style="border-radius: 8px;">
+              <option value="">-- Method --</option>
+              <option>UPI</option>
+              <option>Bank Transfer</option>
+              <option>Cash</option>
+              <option>Cheque</option>
+            </select>
+          </div>
+          <div class="col-6">
+            <label class="form-label small text-muted text-uppercase fw-bold">Payment Date</label>
+            <input class="form-control" name="payment_date" type="date" required style="border-radius: 8px;">
+          </div>
+        </div>
+
+        <label class="form-label small text-muted text-uppercase fw-bold">Reference / UTR Number</label>
+        <input class="form-control mb-3" name="reference_number" placeholder="e.g. UPI/123456789" style="border-radius: 8px;">
+
+        <button class="btn btn-secondary-soft w-100 fw-bold py-2" type="submit" style="border-radius: 8px;">
+          Record Payment
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

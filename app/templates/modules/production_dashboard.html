@@ -1,0 +1,274 @@
+{% extends 'base.html' %}
+{% block title %}Production Planning &amp; Batches - Smart Food Manufacturing Factory{% endblock %}
+{% block content %}
+<style>
+  .prod-hero {
+    background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
+    color: #FFFFFF;
+    border-radius: 14px;
+    padding: 20px 24px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.12);
+  }
+  .prod-kpi {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+  }
+  .prod-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+</style>
+
+<!-- Header Hero Banner -->
+<div class="prod-hero">
+  <div>
+    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+      <span style="background: rgba(34, 197, 94, 0.2); color: #86EFAC; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 9999px; text-transform: uppercase;">
+        Module 6
+      </span>
+      <span style="color: #94A3B8; font-size: 12px;">•</span>
+      <span style="color: #CBD5E1; font-size: 12.5px;">5 Snack Sections (Murukku, Chips, Mixture, Mysore Pak)</span>
+    </div>
+    <h1 style="font-size: 22px; font-weight: 800; margin: 0; color: #FFFFFF; letter-spacing: -0.01em;">
+      Production Planning &amp; Batch Management
+    </h1>
+    <p style="color: #94A3B8; margin: 4px 0 0 0; font-size: 13.5px;">
+      Schedule snack recipes, trigger batch runs, track real-time outputs, and record finished packet counts.
+    </p>
+  </div>
+  <div class="d-flex gap-2">
+    <a class="btn btn-light fw-bold" href="{{ url_for('modules.factory_layout') }}" style="border-radius: 8px; font-size: 13px;">
+      🗺️ 2D Plant Layout
+    </a>
+    <a class="btn btn-primary fw-bold" href="{{ url_for('voice.record', module='Production') }}" style="border-radius: 8px; font-size: 13px;">
+      🎙️ Production Voice Note
+    </a>
+  </div>
+</div>
+
+<!-- 4 KPI Summary Cards -->
+<div class="row g-3">
+  <div class="col-md-3">
+    <div class="prod-kpi">
+      <div class="prod-icon" style="background: #EFF6FF; color: #2563EB;">📋</div>
+      <div>
+        <strong style="font-size: 20px; font-weight: 800; color: #1E293B; line-height: 1.1; display: block;">{{ plan_count }}</strong>
+        <small style="color: #64748B; font-size: 11.5px; font-weight: 600;">Production Plans</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="prod-kpi">
+      <div class="prod-icon" style="background: #F1F5F9; color: #475569;">📦</div>
+      <div>
+        <strong style="font-size: 20px; font-weight: 800; color: #1E293B; line-height: 1.1; display: block;">{{ batch_count }}</strong>
+        <small style="color: #64748B; font-size: 11.5px; font-weight: 600;">Total Batches</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="prod-kpi">
+      <div class="prod-icon" style="background: #FEF3C7; color: #D97706;">⏳</div>
+      <div>
+        <strong style="font-size: 20px; font-weight: 800; color: #D97706; line-height: 1.1; display: block;">{{ active_count }}</strong>
+        <small style="color: #64748B; font-size: 11.5px; font-weight: 600;">In Progress</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="prod-kpi">
+      <div class="prod-icon" style="background: #ECFDF5; color: #059669;">✅</div>
+      <div>
+        <strong style="font-size: 20px; font-weight: 800; color: #059669; line-height: 1.1; display: block;">{{ completed_count }}</strong>
+        <small style="color: #64748B; font-size: 11.5px; font-weight: 600;">Completed</small>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Main Section: Batches Table on Left, Create Forms on Right -->
+<div class="row g-3 mt-1">
+  <div class="col-lg-7">
+    <div class="panel table-panel" style="border-radius: 12px; border: 1px solid #E2E8F0; overflow: hidden;">
+      <div class="p-3 bg-light border-bottom d-flex justify-content-between align-items-center">
+        <h2 style="font-size: 15px; font-weight: 700; color: #1E293B; margin: 0;">
+          🍘 Factory Production Batches
+        </h2>
+        <span class="badge bg-white text-dark border">Live Log</span>
+      </div>
+      
+      <div class="table-responsive">
+        <table class="table align-middle m-0">
+          <thead style="background: #F8FAFC; font-size: 12px; color: #64748B;">
+            <tr>
+              <th>Batch Code</th>
+              <th>Product Line</th>
+              <th>Department</th>
+              <th>Status</th>
+              <th>Actual / Planned</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for batch in batches %}
+            <tr>
+              <td>
+                <strong style="color: #1E293B; font-size: 13px;">{{ batch.batch_number }}</strong>
+              </td>
+              <td>
+                {% if 'Murukku' in (batch.product_name or '') %}
+                <span class="badge" style="background: #FEF3C7; color: #92400E; border: 1px solid #FCD34D;">🌾 Murukku</span>
+                {% elif 'Potato' in (batch.product_name or '') %}
+                <span class="badge" style="background: #ECFCCB; color: #3F6212; border: 1px solid #BEF264;">🥔 Potato Chips</span>
+                {% elif 'Banana' in (batch.product_name or '') %}
+                <span class="badge" style="background: #F3E8FF; color: #6B21A8; border: 1px solid #E9D5FF;">🍌 Banana Chips</span>
+                {% elif 'Mixture' in (batch.product_name or '') %}
+                <span class="badge" style="background: #FFE4E6; color: #9F1239; border: 1px solid #FECDD3;">🥜 Mixture</span>
+                {% elif 'Mysore' in (batch.product_name or '') %}
+                <span class="badge" style="background: #CFFAFE; color: #155E75; border: 1px solid #A5F3FC;">🧈 Mysore Pak</span>
+                {% else %}
+                <span class="badge bg-light text-dark border">{{ batch.product_name or '—' }}</span>
+                {% endif %}
+              </td>
+              <td><small style="color: #475569; font-weight: 600;">{{ batch.department_name or '—' }}</small></td>
+              <td>
+                {% if batch.batch_status == 'COMPLETED' %}
+                <span class="badge bg-success">COMPLETED</span>
+                {% elif batch.batch_status == 'IN_PROGRESS' %}
+                <span class="badge bg-warning text-dark">IN PROGRESS</span>
+                {% if batch.started_at %}
+                <small class="d-block text-muted" data-live-elapsed data-start="{{ batch.started_at }}" style="font-size: 11px;">Elapsed...</small>
+                {% endif %}
+                {% else %}
+                <span class="badge bg-secondary">{{ batch.batch_status }}</span>
+                {% endif %}
+              </td>
+              <td>
+                <span style="font-weight: 700; color: #1E293B;">{{ batch.actual_quantity or 0 }}</span>
+                <span style="color: #94A3B8;">/</span>
+                <span style="color: #64748B;">{{ batch.planned_quantity }}</span>
+              </td>
+              <td>
+                {% if batch.batch_status == 'PLANNED' %}
+                <form method="post" action="{{ url_for('modules.production_batch_start', batch_id=batch.id) }}" class="d-inline">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                  <button class="btn btn-sm btn-primary py-0 px-2" style="font-size: 12px; border-radius: 6px;">Start</button>
+                </form>
+                {% elif batch.batch_status == 'IN_PROGRESS' %}
+                <form method="post" action="{{ url_for('modules.production_batch_complete', batch_id=batch.id) }}" class="d-inline-flex gap-1 align-items-center">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                  <input class="form-control form-control-sm" name="actual_quantity" type="number" min="0" step="0.1" placeholder="Qty" style="width: 65px;" required>
+                  <input class="form-control form-control-sm" name="damaged_quantity" type="number" min="0" step="0.1" value="0" placeholder="Dmg" style="width: 55px;" required>
+                  <input type="hidden" name="wastage_quantity" value="0">
+                  <button class="btn btn-sm btn-success py-0 px-2" style="font-size: 12px; border-radius: 6px;">Done</button>
+                </form>
+                {% else %}
+                <span style="color: #15803D; font-size: 12px; font-weight: 700;">✓ Done</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="6" class="text-center py-4 text-muted">No production batches scheduled today.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Column: Create Forms -->
+  <div class="col-lg-5">
+    <!-- Create Production Plan -->
+    <div class="panel mb-3" style="border-radius: 12px; border: 1px solid #E2E8F0; padding: 18px;">
+      <h2 style="font-size: 15px; font-weight: 700; color: #1E293B; margin-bottom: 12px;">
+        📝 Create Production Plan
+      </h2>
+      <form method="post" action="{{ url_for('modules.production_plan_create') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <input class="form-control form-control-sm mb-2" name="plan_date" type="date" required>
+        <select class="form-select form-select-sm mb-2" name="product_id" required>
+          <option value="">-- Select Snack Product --</option>
+          {% for product in products %}
+          <option value="{{ product.id }}">{{ product.name }}</option>
+          {% endfor %}
+        </select>
+        <select class="form-select form-select-sm mb-2" name="department_id">
+          <option value="">-- Production Section --</option>
+          {% for department in departments %}
+          <option value="{{ department.id }}">{{ department.name }}</option>
+          {% endfor %}
+        </select>
+        <select class="form-select form-select-sm mb-2" name="shift_id">
+          <option value="">-- Select Shift --</option>
+          {% for shift in shifts %}
+          <option value="{{ shift.id }}">{{ shift.name }} ({{ shift.start_time }}-{{ shift.end_time }})</option>
+          {% endfor %}
+        </select>
+        <div class="row g-2 mb-2">
+          <div class="col">
+            <input class="form-control form-control-sm" name="planned_quantity" type="number" min="0" placeholder="Planned Packets">
+          </div>
+          <div class="col">
+            <input class="form-control form-control-sm" name="planned_batches" type="number" min="0" placeholder="Batches count">
+          </div>
+        </div>
+        <input type="hidden" name="priority" value="1">
+        <textarea class="form-control form-control-sm mb-2" name="notes" rows="2" placeholder="Recipe or line notes..."></textarea>
+        <button class="btn btn-primary btn-sm w-100 fw-bold" type="submit">Create Plan</button>
+      </form>
+    </div>
+
+    <!-- Create Batch -->
+    <div class="panel" style="border-radius: 12px; border: 1px solid #E2E8F0; padding: 18px;">
+      <h2 style="font-size: 15px; font-weight: 700; color: #1E293B; margin-bottom: 12px;">
+        ⚡ Instant Batch Launch
+      </h2>
+      <form method="post" action="{{ url_for('modules.production_batch_create') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <select class="form-select form-select-sm mb-2" name="product_id" required>
+          <option value="">-- Select Product --</option>
+          {% for product in products %}
+          <option value="{{ product.id }}">{{ product.name }}</option>
+          {% endfor %}
+        </select>
+        <select class="form-select form-select-sm mb-2" name="department_id">
+          <option value="">-- Production Section --</option>
+          {% for department in departments %}
+          <option value="{{ department.id }}">{{ department.name }}</option>
+          {% endfor %}
+        </select>
+        <select class="form-select form-select-sm mb-2" name="shift_id">
+          <option value="">-- Shift --</option>
+          {% for shift in shifts %}
+          <option value="{{ shift.id }}">{{ shift.name }}</option>
+          {% endfor %}
+        </select>
+        <input class="form-control form-control-sm mb-2" name="planned_quantity" type="number" min="0" placeholder="Planned quantity">
+        <button class="btn btn-secondary-soft btn-sm w-100 fw-bold" type="submit">Create Batch</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

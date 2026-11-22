@@ -1,0 +1,388 @@
+{% extends 'base.html' %}
+{% block title %}Owner Voice Assistant - Smart Food Manufacturing Factory{% endblock %}
+{% block content %}
+<div class="page-heading">
+  <div>
+    <p class="eyebrow">Smart Voice Assistant</p>
+    <h1>Owner Voice Recording &amp; Control</h1>
+  </div>
+  <a class="btn btn-secondary-soft" href="{{ url_for('voice.library') }}">📁 Voice Records Library</a>
+</div>
+
+<div class="alert alert-info mb-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
+  <div>
+    <strong>🎙️ Owner Voice Input:</strong> Speak naturally in <strong>Tamil</strong>, <strong>English</strong>, or <strong>Tamil-English mixed</strong> to manage production, workforce, inventory, sales, quality, or report emergencies.
+  </div>
+  <span class="badge bg-primary">Tamil Speech-to-Text Active</span>
+</div>
+
+<div class="row g-3">
+  <!-- Left Column: Audio Recording Console -->
+  <div class="col-lg-7">
+    <div class="panel">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="m-0">Voice Recording Console</h2>
+        <span class="badge bg-light text-dark border" id="speechEngineBadge">Web Speech Engine: ta-IN</span>
+      </div>
+
+      <div id="voiceRecorder" class="p-3 bg-light rounded border text-center mb-3">
+        <div class="voice-recorder-status mb-3 d-flex justify-content-center align-items-center gap-2">
+          <span class="voice-status-dot" id="statusDot"></span>
+          <strong id="voiceStatus" style="font-size: 16px;">Ready to Record</strong>
+          <span id="voiceTimer" class="badge bg-dark fs-6 ms-2">00:00</span>
+        </div>
+
+        <!-- Recording Action Buttons -->
+        <div class="d-flex gap-2 justify-content-center flex-wrap mb-3">
+          <button type="button" class="btn btn-danger px-4 py-2" id="voiceStart">
+            🔴 Start Recording
+          </button>
+          <button type="button" class="btn btn-secondary px-3" id="voicePause" disabled>
+            ⏸️ Pause
+          </button>
+          <button type="button" class="btn btn-secondary px-3" id="voiceResume" disabled>
+            ▶️ Resume
+          </button>
+          <button type="button" class="btn btn-dark px-4 py-2" id="voiceStop" disabled>
+            ⏹️ Stop
+          </button>
+          <button type="button" class="btn btn-outline-secondary px-3" id="voiceReset" disabled>
+            🔄 Re-record
+          </button>
+        </div>
+
+        <!-- Audio Player Preview -->
+        <div id="audioPreviewContainer" class="mt-3" style="display: none;">
+          <label class="form-label text-muted small fw-bold">AUDIO PLAYBACK</label>
+          <audio id="voicePreview" controls class="w-100"></audio>
+        </div>
+      </div>
+
+      <!-- Quick Command Dropdown for Owner Convenience -->
+      <div class="card p-3 border">
+        <label class="form-label fw-bold text-primary">⚡ Quick Factory Voice Command Templates (Tamil)</label>
+        <select class="form-select form-select-sm" id="quickSampleSelect">
+          <option value="">-- Choose a standard Tamil factory command --</option>
+          <optgroup label="General Factory Management">
+            <option value="நம்முடைய Smart Food Manufacturing Factory-யின் இன்றைய நிலவரத்தை சொல்லுங்கள்.">இன்றைய தொழிற்சாலை நிலவரம்</option>
+            <option value="இன்றைய மொத்த உற்பத்தி விவரங்களைக் காட்டுங்கள்.">இன்றைய மொத்த உற்பத்தி</option>
+            <option value="இன்று எத்தனை பேர் வேலைக்கு வந்திருக்கிறார்கள்?">இன்றைய தொழிலாளர் வருகை</option>
+            <option value="இன்றைய வரவு செலவு விவரங்களைக் காட்டுங்கள்.">வரவு செலவு விவரங்கள்</option>
+          </optgroup>
+          <optgroup label="Murukku Production">
+            <option value="முருக்கு பிரிவில் இன்றைக்கு மூன்று பேட்ச்கள் தயாரிக்க வேண்டும்.">முருக்கு: 3 பேட்ச்கள் இலக்கு</option>
+            <option value="முதல் பேட்ச் உற்பத்தியைத் தொடங்குங்கள்.">முருக்கு: முதல் பேட்ச் தொடங்கு</option>
+            <option value="இன்றைய முதல் பேட்சில் 188 பாக்கெட்டுகள் தயாராகியுள்ளன. ஆறு பாக்கெட்டுகள் சேதமடைந்துவிட்டன.">முருக்கு: 188 பாக்கெட்டுகள் தயார், 6 சேதம்</option>
+            <option value="முருக்கு production start பண்ணுங்க.">முருக்கு production start பண்ணுங்க (Mixed)</option>
+          </optgroup>
+          <optgroup label="Potato Chips &amp; Banana Chips">
+            <option value="உருளைக்கிழங்கு சிப்ஸ் பிரிவில் இன்று இரண்டு பேட்ச்கள் தயாரிக்க வேண்டும்.">உருளைக்கிழங்கு: 2 பேட்ச்கள் தயாரிப்பு</option>
+            <option value="வாழைக்காய் சிப்ஸ் பிரிவில் உற்பத்தியைத் தொடங்குங்கள்.">வாழைக்காய்: உற்பத்தி தொடங்கு</option>
+            <option value="இந்த பேட்சில் 120 கிலோ வாழைக்காய் பயன்படுத்தப்பட்டுள்ளது.">வாழைக்காய்: 120 கிலோ பயன்பாடு</option>
+          </optgroup>
+          <optgroup label="Mixture &amp; Mysore Pak">
+            <option value="மிக்சர் பிரிவில் இன்றைய உற்பத்தியைத் தொடங்குங்கள். இந்த பேட்சில் 100 கிலோ மிக்சர் தயாராகியுள்ளது.">மிக்சர்: 100 கிலோ தயார்</option>
+            <option value="மைசூர் பாக் பிரிவில் இன்றைய உற்பத்தியைத் தொடங்குங்கள். இன்றைய மைசூர் பாக் உற்பத்தி இலக்கு முடிந்துவிட்டது.">மைசூர் பாக்: உற்பத்தி இலக்கு முடிவு</option>
+          </optgroup>
+          <optgroup label="Labour &amp; Workforce">
+            <option value="ரமேஷ் இன்று காலை ஷிப்டில் வேலைக்கு வந்துள்ளார்.">ரமேஷ் காலை ஷிப்ட் வருகை</option>
+            <option value="குமார் இன்று இரண்டு மணி நேரம் கூடுதலாக வேலை செய்துள்ளார்.">குமார் 2 மணி நேரம் ஓவர்டைம்</option>
+            <option value="Labour attendance update பண்ணுங்க.">Labour attendance update (Mixed)</option>
+          </optgroup>
+          <optgroup label="Machine Issues &amp; Maintenance">
+            <option value="பொரிக்கும் இயந்திரத்தில் கோளாறு ஏற்பட்டுள்ளது.">பொரிக்கும் இயந்திரக் கோளாறு</option>
+            <option value="பேக்கிங் இயந்திரம் தற்போது வேலை செய்யவில்லை.">பேக்கிங் இயந்திரம் பழுது</option>
+            <option value="Machine breakdown ஆயிடுச்சு.">Machine breakdown ஆயிடுச்சு (Mixed)</option>
+          </optgroup>
+          <optgroup label="Inventory &amp; Warehouses">
+            <option value="இன்று மாவு இருப்பு எவ்வளவு இருக்கிறது?">மாவு இருப்பு விசாரணை</option>
+            <option value="இன்று 60 கிலோ மாவு கிடங்கிற்கு வந்துள்ளது.">60 கிலோ மாவு வரவு</option>
+            <option value="Oil stock குறைவா இருக்கு.">Oil stock குறைவா இருக்கு (Mixed)</option>
+          </optgroup>
+          <optgroup label="Sales &amp; Finance">
+            <option value="ரீட்டெய்லர் A இன்று 150 முருக்கு பாக்கெட்டுகள் ஆர்டர் செய்துள்ளார்.">ரீட்டெய்லர் A 150 பாக்கெட்டுகள் ஆர்டர்</option>
+            <option value="ரீட்டெய்லர் A நான்காயிரம் ரூபாய் செலுத்தியுள்ளார். இந்தப் பணத்தை வாடிக்கையாளரின் கணக்கில் பதிவு செய்யுங்கள்.">ரீட்டெய்லர் A ₹4,000 கட்டணம் வரவு</option>
+            <option value="இந்த invoice-ஐ generate பண்ணுங்க.">Invoice generate பண்ணுங்க (Mixed)</option>
+          </optgroup>
+          <optgroup label="Emergency &amp; Approvals">
+            <option value="முருக்கு பிரிவில் அவசரமாக இயந்திரத்தை நிறுத்த வேண்டும். எண்ணெய் கசிவு ஏற்பட்டுள்ளது.">🚨 அவசர இயந்திர நிறுத்தம் &amp; எண்ணெய் கசிவு</option>
+            <option value="இந்த உற்பத்தி ஆர்டரை நான் அனுமதிக்கிறேன்.">உற்பத்தி ஆர்டர் அனுமதி (Approval)</option>
+          </optgroup>
+        </select>
+        <small class="text-muted mt-1">Select a template to automatically populate the transcript for quick testing.</small>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Column: Context, Transcript & Submission Form -->
+  <div class="col-lg-5">
+    <div class="panel">
+      <h2>Voice Context &amp; Details</h2>
+      <form id="voiceUploadForm" method="post" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <input type="hidden" name="duration_seconds" id="durationSeconds" value="0">
+        <input type="hidden" name="audio_base64" id="audioBase64">
+
+        <!-- Title -->
+        <div class="mb-2">
+          <label class="form-label fw-bold">Title / Subject</label>
+          <input class="form-control" name="title" id="voiceTitle" value="Owner Factory Voice Instruction" required>
+        </div>
+
+        <!-- Department / Factory Location Selection -->
+        <div class="mb-2">
+          <label class="form-label fw-bold">Department / Factory Location</label>
+          <select class="form-select" name="department_id" id="departmentSelect">
+            <option value="">🏢 General Factory / All Sections</option>
+            {% for department in departments %}
+            <option value="{{ department.id }}" {% if selected_department==department.id|string %}selected{% endif %}>
+              {{ department.name }}
+            </option>
+            {% endfor %}
+          </select>
+          <input type="hidden" name="location_id" id="locationId" value="{{ selected_location }}">
+        </div>
+
+        <!-- Related Module -->
+        <div class="mb-2">
+          <label class="form-label fw-bold">Related Module</label>
+          <select class="form-select" name="module_name" id="moduleSelect">
+            <option value="">Auto-Detect from Speech</option>
+            <option {% if selected_module=='Production' %}selected{% endif %}>Production</option>
+            <option {% if selected_module=='Labour' %}selected{% endif %}>Labour</option>
+            <option {% if selected_module=='Machines' %}selected{% endif %}>Machines</option>
+            <option {% if selected_module=='Inventory' %}selected{% endif %}>Inventory</option>
+            <option {% if selected_module=='Purchasing' %}selected{% endif %}>Purchasing</option>
+            <option {% if selected_module=='Quality' %}selected{% endif %}>Quality</option>
+            <option {% if selected_module=='Sales' %}selected{% endif %}>Sales</option>
+            <option {% if selected_module=='Dispatch' %}selected{% endif %}>Dispatch</option>
+            <option {% if selected_module=='Finance' %}selected{% endif %}>Finance</option>
+            <option {% if selected_module=='Maintenance' %}selected{% endif %}>Maintenance</option>
+          </select>
+        </div>
+
+        <!-- Language Selection -->
+        <div class="mb-2">
+          <label class="form-label fw-bold">Language Mode</label>
+          <select class="form-select" name="language" id="languageSelect">
+            <option value="TAMIL" selected>🇮🇳 தமிழ் (Tamil - ta-IN)</option>
+            <option value="TAMIL_ENGLISH_MIXED">Tamil-English Mixed (Tanglish)</option>
+            <option value="ENGLISH">English (en-IN)</option>
+          </select>
+        </div>
+
+        <!-- Editable Transcript Area -->
+        <div class="mb-3">
+          <label class="form-label fw-bold">Speech Transcript (Live or Editable)</label>
+          <textarea class="form-control" name="transcript" id="voiceTranscript" rows="5" placeholder="Speak in Tamil or English. Live speech-to-text transcription will appear here. You can also edit or type manually." required>{{ initial_transcript }}</textarea>
+          <small class="text-muted">You can edit the recognised text directly before confirming changes.</small>
+        </div>
+
+        <!-- Audio File Input (Hidden, populated by recorder or manual upload fallback) -->
+        <div class="mb-3">
+          <label class="form-label small text-muted">Audio File Fallback</label>
+          <input class="form-control form-control-sm" type="file" name="audio" id="voiceFile" accept="audio/*,video/webm">
+        </div>
+
+        <button class="btn btn-primary w-100 py-2 fs-6 fw-bold" type="submit" id="submitBtn">
+          💾 Save &amp; Review Proposed ERP Action
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  var startBtn = document.getElementById('voiceStart');
+  var pauseBtn = document.getElementById('voicePause');
+  var resumeBtn = document.getElementById('voiceResume');
+  var stopBtn = document.getElementById('voiceStop');
+  var resetBtn = document.getElementById('voiceReset');
+  var statusText = document.getElementById('voiceStatus');
+  var statusDot = document.getElementById('statusDot');
+  var timerText = document.getElementById('voiceTimer');
+  var previewContainer = document.getElementById('audioPreviewContainer');
+  var preview = document.getElementById('voicePreview');
+  var transcriptArea = document.getElementById('voiceTranscript');
+  var durationInput = document.getElementById('durationSeconds');
+  var fileInput = document.getElementById('voiceFile');
+  var langSelect = document.getElementById('languageSelect');
+  var quickSelect = document.getElementById('quickSampleSelect');
+
+  var mediaRecorder = null;
+  var audioChunks = [];
+  var stream = null;
+  var timerInterval = null;
+  var elapsedSeconds = 0;
+  var recognition = null;
+
+  function updateStatus(text, isRecording) {
+    statusText.textContent = text;
+    if (statusDot) {
+      statusDot.className = 'voice-status-dot' + (isRecording ? ' recording' : '');
+    }
+  }
+
+  function tickTimer() {
+    elapsedSeconds++;
+    var mins = String(Math.floor(elapsedSeconds / 60)).padStart(2, '0');
+    var secs = String(elapsedSeconds % 60).padStart(2, '0');
+    timerText.textContent = mins + ':' + secs;
+    durationInput.value = elapsedSeconds;
+  }
+
+  // Setup SpeechRecognition
+  var SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (SpeechRec) {
+    recognition = new SpeechRec();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = 'ta-IN';
+
+    recognition.onresult = function(event) {
+      var fullText = '';
+      for (var i = event.resultIndex; i < event.results.length; ++i) {
+        fullText += event.results[i][0].transcript;
+      }
+      if (fullText.trim()) {
+        transcriptArea.value = (transcriptArea.value + ' ' + fullText.trim()).trim();
+      }
+    };
+
+    recognition.onerror = function(event) {
+      console.warn("Speech recognition notice:", event.error);
+    };
+  }
+
+  // Language switch
+  if (langSelect) {
+    langSelect.addEventListener('change', function() {
+      if (recognition) {
+        recognition.lang = langSelect.value === 'ENGLISH' ? 'en-IN' : 'ta-IN';
+      }
+    });
+  }
+
+  // Quick sample command selection
+  if (quickSelect) {
+    quickSelect.addEventListener('change', function() {
+      if (quickSelect.value) {
+        transcriptArea.value = quickSelect.value;
+      }
+    });
+  }
+
+  // Start Recording
+  startBtn.addEventListener('click', async function() {
+    audioChunks = [];
+    elapsedSeconds = 0;
+    timerText.textContent = '00:00';
+
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      var mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus') ? 'audio/webm;codecs=opus' : 'audio/webm';
+      mediaRecorder = new MediaRecorder(stream, { mimeType: mimeType });
+
+      mediaRecorder.ondataavailable = function(e) {
+        if (e.data && e.data.size > 0) audioChunks.push(e.data);
+      };
+
+      mediaRecorder.onstop = function() {
+        var blob = new Blob(audioChunks, { type: 'audio/webm' });
+        var reader = new FileReader();
+        reader.onloadend = function() {
+          var b64El = document.getElementById('audioBase64');
+          if (b64El) b64El.value = reader.result;
+        };
+        reader.readAsDataURL(blob);
+
+        var file = new File([blob], 'recording.webm', { type: 'audio/webm' });
+        try {
+          var container = new DataTransfer();
+          container.items.add(file);
+          fileInput.files = container.files;
+        } catch (err) {}
+
+        preview.src = URL.createObjectURL(blob);
+        previewContainer.style.display = 'block';
+        updateStatus('Recording Complete', false);
+        resetBtn.disabled = false;
+      };
+
+      mediaRecorder.start(1000);
+      timerInterval = setInterval(tickTimer, 1000);
+      updateStatus('Recording in Tamil...', true);
+
+      startBtn.disabled = true;
+      pauseBtn.disabled = false;
+      stopBtn.disabled = false;
+      resetBtn.disabled = true;
+
+      if (recognition) {
+        try { recognition.start(); } catch(e) {}
+      }
+    } catch(err) {
+      console.error(err);
+      updateStatus('Mic unavailable. Manual text entry active.', false);
+    }
+  });
+
+  // Pause
+  pauseBtn.addEventListener('click', function() {
+    if (mediaRecorder && mediaRecorder.state === 'recording') {
+      mediaRecorder.pause();
+      clearInterval(timerInterval);
+      if (recognition) { try { recognition.stop(); } catch(e) {} }
+      updateStatus('Recording Paused', false);
+      pauseBtn.disabled = true;
+      resumeBtn.disabled = false;
+    }
+  });
+
+  // Resume
+  resumeBtn.addEventListener('click', function() {
+    if (mediaRecorder && mediaRecorder.state === 'paused') {
+      mediaRecorder.resume();
+      timerInterval = setInterval(tickTimer, 1000);
+      if (recognition) { try { recognition.start(); } catch(e) {} }
+      updateStatus('Recording in Tamil...', true);
+      pauseBtn.disabled = false;
+      resumeBtn.disabled = true;
+    }
+  });
+
+  // Stop
+  stopBtn.addEventListener('click', function() {
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+      mediaRecorder.stop();
+    }
+    if (stream) {
+      stream.getTracks().forEach(function(t) { t.stop(); });
+    }
+    if (timerInterval) clearInterval(timerInterval);
+    if (recognition) { try { recognition.stop(); } catch(e) {} }
+
+    startBtn.disabled = false;
+    pauseBtn.disabled = true;
+    resumeBtn.disabled = true;
+    stopBtn.disabled = true;
+  });
+
+  // Reset / Re-record
+  resetBtn.addEventListener('click', function() {
+    if (timerInterval) clearInterval(timerInterval);
+    elapsedSeconds = 0;
+    timerText.textContent = '00:00';
+    durationInput.value = '0';
+    preview.pause();
+    preview.src = '';
+    previewContainer.style.display = 'none';
+    audioChunks = [];
+    updateStatus('Ready to Record', false);
+    resetBtn.disabled = true;
+    startBtn.disabled = false;
+  });
+})();
+</script>
+{% endblock %}

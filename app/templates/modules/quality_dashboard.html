@@ -1,0 +1,357 @@
+{% extends 'base.html' %}
+{% block title %}Quality Control & Food Safety - Smart Food Manufacturing Factory{% endblock %}
+{% block content %}
+<style>
+  .qc-hero {
+    background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
+    color: #FFFFFF;
+    border-radius: 14px;
+    padding: 20px 24px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.12);
+  }
+  .qc-kpi {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .qc-kpi:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(0,0,0,0.06);
+  }
+  .qc-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    display: grid;
+    place-items: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .qc-card {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+  }
+</style>
+
+<!-- Hero Header Banner -->
+<div class="qc-hero">
+  <div>
+    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+      <span style="background: rgba(34, 197, 94, 0.2); color: #86EFAC; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 9999px; text-transform: uppercase;">
+        Module 9
+      </span>
+      <span style="color: #94A3B8; font-size: 12px;">•</span>
+      <span style="color: #CBD5E1; font-size: 12.5px;">📍 Tamilnadu FSSAI Food Safety Lab</span>
+    </div>
+    <h1 style="font-size: 22px; font-weight: 800; margin: 0; color: #FFFFFF; letter-spacing: -0.01em;">
+      Quality Assurance &amp; Food Safety Standards
+    </h1>
+    <p style="color: #94A3B8; margin: 4px 0 0 0; font-size: 13.5px;">
+      Moisture testing, frying oil FFA/TPM levels, sensory taste checks, and HACCP compliance audits.
+    </p>
+  </div>
+  <div class="d-flex gap-2">
+    <a class="btn btn-outline-light fw-bold" href="{{ url_for('voice.record', module='Quality') }}" style="border-radius: 8px; font-size: 13px;">
+      🎙️ Voice Quality Log
+    </a>
+    <a class="btn btn-light fw-bold" href="{{ url_for('modules.production_dashboard') }}" style="border-radius: 8px; font-size: 13px; color: #0F172A;">
+      🥨 Production Batches
+    </a>
+  </div>
+</div>
+
+<!-- 6 Colored KPI Cards -->
+<div class="row g-2 mb-3">
+  <div class="col-md-2">
+    <div class="qc-kpi" style="border-left: 4px solid #3B82F6;">
+      <div class="qc-icon" style="background: #EFF6FF; color: #1D4ED8;">🔬</div>
+      <div>
+        <small style="color: #64748B; font-weight: 600; text-transform: uppercase; font-size: 10px;">Total Tests</small>
+        <div style="font-size: 18px; font-weight: 800; color: #0F172A;">{{ total }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-2">
+    <div class="qc-kpi" style="border-left: 4px solid #F59E0B;">
+      <div class="qc-icon" style="background: #FEF3C7; color: #B45309;">⏳</div>
+      <div>
+        <small style="color: #64748B; font-weight: 600; text-transform: uppercase; font-size: 10px;">Pending</small>
+        <div style="font-size: 18px; font-weight: 800; color: #0F172A;">{{ pending }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-2">
+    <div class="qc-kpi" style="border-left: 4px solid #10B981;">
+      <div class="qc-icon" style="background: #ECFDF5; color: #047857;">✅</div>
+      <div>
+        <small style="color: #64748B; font-weight: 600; text-transform: uppercase; font-size: 10px;">Passed</small>
+        <div style="font-size: 18px; font-weight: 800; color: #0F172A;">{{ passed }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-2">
+    <div class="qc-kpi" style="border-left: 4px solid #EF4444;">
+      <div class="qc-icon" style="background: #FFF1F2; color: #BE123C;">❌</div>
+      <div>
+        <small style="color: #64748B; font-weight: 600; text-transform: uppercase; font-size: 10px;">Failed</small>
+        <div style="font-size: 18px; font-weight: 800; color: #0F172A;">{{ failed }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-2">
+    <div class="qc-kpi" style="border-left: 4px solid #8B5CF6;">
+      <div class="qc-icon" style="background: #F3E8FF; color: #6D28D9;">🛑</div>
+      <div>
+        <small style="color: #64748B; font-weight: 600; text-transform: uppercase; font-size: 10px;">Held Batches</small>
+        <div style="font-size: 18px; font-weight: 800; color: #0F172A;">{{ held }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-2">
+    <div class="qc-kpi" style="border-left: 4px solid #EC4899;">
+      <div class="qc-icon" style="background: #FDF2F8; color: #BE185D;">📢</div>
+      <div>
+        <small style="color: #64748B; font-weight: 600; text-transform: uppercase; font-size: 10px;">Complaints</small>
+        <div style="font-size: 18px; font-weight: 800; color: #0F172A;">{{ open_complaints }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <!-- Left Column: Inspections & Complaints -->
+  <div class="col-lg-7">
+    <div class="qc-card mb-3">
+      <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
+        <h3 class="m-0 fs-5 fw-bold text-dark">🧪 Quality Inspections Log</h3>
+        <span class="badge bg-light text-dark border">{{ inspections|length }} Inspections</span>
+      </div>
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead style="background: #F8FAFC; color: #475569; font-size: 12px; text-transform: uppercase;">
+            <tr>
+              <th style="padding: 12px 16px;">QC #</th>
+              <th>Inspection Type</th>
+              <th>Product</th>
+              <th>Result</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for inspection in inspections %}
+            <tr>
+              <td style="padding: 12px 16px;">
+                <strong class="text-dark">{{ inspection.inspection_number }}</strong>
+              </td>
+              <td><span class="badge bg-light text-dark border">{{ inspection.inspection_type }}</span></td>
+              <td>{{ inspection.product_name or '—' }}</td>
+              <td>
+                <span class="badge {% if inspection.result=='PASS' %}bg-success{% elif inspection.result=='FAIL' %}bg-danger{% elif inspection.result=='HOLD' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
+                  {{ inspection.result or 'PENDING' }}
+                </span>
+              </td>
+              <td>
+                <span class="status {{ 'active' if inspection.status=='COMPLETED' else 'inactive' }}">
+                  {{ inspection.status }}
+                </span>
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="5" class="text-center py-4 text-muted">No quality inspections logged yet.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Complaints & CAPA -->
+    <div class="qc-card">
+      <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
+        <h3 class="m-0 fs-5 fw-bold text-dark">🛡️ Customer Feedback &amp; CAPA Actions</h3>
+        <span class="badge bg-light text-dark border">{{ complaints|length }} Complaints</span>
+      </div>
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead style="background: #F8FAFC; color: #475569; font-size: 12px; text-transform: uppercase;">
+            <tr>
+              <th style="padding: 12px 16px;">Ticket #</th>
+              <th>Customer</th>
+              <th>Severity</th>
+              <th>Status</th>
+              <th>Corrective Action (CAPA)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for complaint in complaints %}
+            <tr>
+              <td style="padding: 12px 16px;">
+                <strong class="text-dark">{{ complaint.complaint_number }}</strong>
+              </td>
+              <td>{{ complaint.customer_name }}</td>
+              <td>
+                <span class="badge {% if complaint.severity=='CRITICAL' %}bg-danger{% elif complaint.severity=='HIGH' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
+                  {{ complaint.severity }}
+                </span>
+              </td>
+              <td><span class="status inactive">{{ complaint.status }}</span></td>
+              <td>
+                {% if 'OWNER' in session.roles or 'FACTORY ADMIN' in session.roles %}
+                <form method="post" action="{{ url_for('modules.quality_capa_create', complaint_id=complaint.id) }}" class="d-inline">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                  <div class="input-group input-group-sm">
+                    <input class="form-control" name="corrective_action" placeholder="Action taken..." required style="border-radius: 6px 0 0 6px;">
+                    <button class="btn btn-primary fw-bold" style="border-radius: 0 6px 6px 0;">Open CAPA</button>
+                  </div>
+                </form>
+                {% else %}
+                <span class="text-muted">—</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="5" class="text-center py-4 text-muted">No complaints logged. Excellent quality!</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Column: Record Inspection, Release Held, Log Complaint -->
+  <div class="col-lg-5">
+    <div class="qc-card p-3 mb-3">
+      <h3 class="fs-5 fw-bold text-dark mb-3">🔬 Record Quality Inspection</h3>
+      <form method="post" action="{{ url_for('modules.quality_inspection_create') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        
+        <label class="form-label small text-muted text-uppercase fw-bold">Inspection Type</label>
+        <select class="form-select mb-2" name="inspection_type" required style="border-radius: 8px;">
+          <option value="">-- Inspection Type --</option>
+          <option>Incoming Material</option>
+          <option>Production Stage</option>
+          <option>Finished Goods</option>
+          <option>Packaging</option>
+          <option>Food Safety</option>
+        </select>
+
+        <div class="row g-2 mb-2">
+          <div class="col-6">
+            <label class="form-label small text-muted text-uppercase fw-bold">Ref Type</label>
+            <select class="form-select" name="reference_type" style="border-radius: 8px;">
+              <option value="">Reference</option>
+              <option value="BATCH">Production Batch</option>
+              <option value="RECEIPT">Goods Receipt</option>
+              <option value="DEPARTMENT">Department</option>
+            </select>
+          </div>
+          <div class="col-6">
+            <label class="form-label small text-muted text-uppercase fw-bold">Ref ID</label>
+            <input class="form-control" name="reference_id" placeholder="Batch / Receipt ID" style="border-radius: 8px;">
+          </div>
+        </div>
+
+        <label class="form-label small text-muted text-uppercase fw-bold">Product</label>
+        <select class="form-select mb-2" name="product_id" style="border-radius: 8px;">
+          <option value="">-- Select Product --</option>
+          {% for product in products %}
+          <option value="{{ product.id }}">{{ product.name }}</option>
+          {% endfor %}
+        </select>
+
+        <label class="form-label small text-muted text-uppercase fw-bold">QC Outcome</label>
+        <select class="form-select mb-2" name="result" required style="border-radius: 8px;">
+          <option value="PENDING">Pending Evaluation</option>
+          <option value="PASS">Pass (Complies with FSSAI)</option>
+          <option value="FAIL">Fail (Moisture/Texture defect)</option>
+          <option value="HOLD">Hold (Quarantine batch for re-test)</option>
+        </select>
+
+        <label class="form-label small text-muted text-uppercase fw-bold">Laboratory Findings</label>
+        <textarea class="form-control mb-3" name="notes" rows="2" placeholder="e.g. Moisture 1.8%, Oil FFA 0.12%, Crispiness standard met" style="border-radius: 8px;"></textarea>
+
+        <button class="btn btn-primary w-100 fw-bold py-2" type="submit" style="border-radius: 8px;">
+          Save Quality Inspection
+        </button>
+      </form>
+    </div>
+
+    <!-- Release Held Batches -->
+    <div class="qc-card p-3 mb-3">
+      <h3 class="fs-5 fw-bold text-dark mb-3">🛑 Release Quarantined Batches</h3>
+      {% if held_batches %}
+      {% for batch in held_batches %}
+      <form method="post" action="{{ url_for('modules.quality_batch_release', batch_id=batch.id) }}" class="mb-2">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <button class="btn btn-sm btn-outline-success w-100 text-start d-flex justify-content-between align-items-center py-2 px-3" style="border-radius: 8px;">
+          <span>Release Quarantined Batch <strong>{{ batch.batch_number }}</strong></span>
+          <span class="badge bg-success">Release</span>
+        </button>
+      </form>
+      {% endfor %}
+      {% else %}
+      <p class="text-muted mb-0 small">No snack batches are currently on quarantine hold.</p>
+      {% endif %}
+    </div>
+
+    <!-- Customer Complaint Form -->
+    <div class="qc-card p-3">
+      <h3 class="fs-5 fw-bold text-dark mb-3">📢 Log Customer Complaint</h3>
+      <form method="post" action="{{ url_for('modules.quality_complaint_create') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        
+        <label class="form-label small text-muted text-uppercase fw-bold">Customer Name</label>
+        <input class="form-control mb-2" name="customer_name" placeholder="Retailer / Customer" required style="border-radius: 8px;">
+
+        <label class="form-label small text-muted text-uppercase fw-bold">Product</label>
+        <select class="form-select mb-2" name="product_id" style="border-radius: 8px;">
+          <option value="">-- Choose Product --</option>
+          {% for product in products %}
+          <option value="{{ product.id }}">{{ product.name }}</option>
+          {% endfor %}
+        </select>
+
+        <label class="form-label small text-muted text-uppercase fw-bold">Complaint Type</label>
+        <input class="form-control mb-2" name="complaint_type" placeholder="e.g. Broken snacks, seal leakage" required style="border-radius: 8px;">
+
+        <label class="form-label small text-muted text-uppercase fw-bold">Severity</label>
+        <select class="form-select mb-2" name="severity" style="border-radius: 8px;">
+          <option>LOW</option>
+          <option selected>MEDIUM</option>
+          <option>HIGH</option>
+          <option>CRITICAL</option>
+        </select>
+
+        <label class="form-label small text-muted text-uppercase fw-bold">Description</label>
+        <textarea class="form-control mb-3" name="description" rows="2" placeholder="Complaint description" required style="border-radius: 8px;"></textarea>
+
+        <button class="btn btn-secondary-soft w-100 fw-bold py-2" type="submit" style="border-radius: 8px;">
+          Record Complaint
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,305 @@
+{% extends 'base.html' %}
+{% block title %}{{ recording.recording_code }} - Tamil Voice Assistant{% endblock %}
+{% block content %}
+<style>
+  .voice-hero {
+    background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
+    color: #FFFFFF;
+    border-radius: 16px;
+    padding: 22px 26px;
+    margin-bottom: 22px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    box-shadow: 0 4px 18px rgba(15, 23, 42, 0.12);
+  }
+  .voice-card {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 14px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .audio-player-box {
+    background: linear-gradient(145deg, #F8FAFC 0%, #F1F5F9 100%);
+    border: 1px solid #E2E8F0;
+    border-radius: 14px;
+    padding: 18px 20px;
+  }
+  .action-banner {
+    background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%);
+    border: 1px solid #FCD34D;
+    border-left: 6px solid #D97706 !important;
+    border-radius: 14px;
+    padding: 18px 22px;
+    margin-bottom: 22px;
+    box-shadow: 0 2px 8px rgba(217, 119, 6, 0.08);
+  }
+  .assistant-reply-banner {
+    background: linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%);
+    border: 1px solid #6EE7B7;
+    border-left: 6px solid #059669 !important;
+    border-radius: 14px;
+    padding: 18px 22px;
+    margin-bottom: 22px;
+    box-shadow: 0 2px 8px rgba(5, 150, 105, 0.08);
+  }
+  .meta-chip {
+    background: #F8FAFC;
+    border: 1px solid #E2E8F0;
+    border-radius: 10px;
+    padding: 10px 14px;
+  }
+</style>
+
+<!-- Hero Header Banner -->
+<div class="voice-hero">
+  <div>
+    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+      <span style="background: rgba(59, 130, 246, 0.2); color: #93C5FD; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 9999px; text-transform: uppercase;">
+        🎙️ Voice AI Dispatch
+      </span>
+      <span style="color: #64748B; font-size: 12px;">•</span>
+      <span style="color: #CBD5E1; font-size: 12.5px;">📍 Tamilnadu Smart Factory</span>
+      <span style="color: #64748B; font-size: 12px;">•</span>
+      <span class="badge {% if recording.language == 'TAMIL' %}bg-primary{% elif recording.language == 'TAMIL_ENGLISH_MIXED' %}bg-info text-dark{% else %}bg-secondary{% endif %}">
+        {{ recording.language }}
+      </span>
+    </div>
+    <h1 style="font-size: 24px; font-weight: 800; margin: 0; color: #FFFFFF; letter-spacing: -0.01em;">
+      {{ recording.title or recording.recording_code }}
+    </h1>
+    <p style="color: #94A3B8; margin: 4px 0 0 0; font-size: 13.5px;">
+      Record Code: <strong style="color: #E2E8F0;">{{ recording.recording_code }}</strong> &bull; Plant Location: <span style="color: #E2E8F0;">{{ recording.department_name or 'General Factory' }}</span>
+    </p>
+  </div>
+  <div class="d-flex gap-2 flex-wrap">
+    <a class="btn btn-outline-light fw-bold" href="{{ url_for('voice.record') }}" style="border-radius: 8px; font-size: 13px;">
+      🎙️ Record Another
+    </a>
+    <a class="btn btn-light fw-bold" href="{{ url_for('voice.library') }}" style="border-radius: 8px; font-size: 13px; color: #0F172A;">
+      📁 Voice Library
+    </a>
+  </div>
+</div>
+
+<!-- Voice Assistant Answer (if AI Query) -->
+{% if analysis.query_response %}
+<div class="assistant-reply-banner">
+  <div class="d-flex justify-content-between align-items-center mb-2">
+    <strong class="text-success fs-5 d-flex align-items-center gap-2">
+      <span>🤖</span> Voice Assistant Answer
+    </strong>
+    <span class="badge bg-success px-3 py-1">Live Factory Data</span>
+  </div>
+  <p class="fs-5 mb-0 text-dark fw-bold">{{ analysis.query_response }}</p>
+</div>
+{% endif %}
+
+<!-- Proposed ERP Action Banner -->
+<div class="action-banner">
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <div>
+      <span style="background: #F59E0B; color: #FFFFFF; font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.04em;">
+        ⚡ PROPOSED ERP ACTION
+      </span>
+      <h3 class="mt-2 mb-1 fs-5 text-dark fw-bold">
+        {{ analysis.proposed_action or recording.remarks or 'General voice observation logged' }}
+      </h3>
+      <small class="text-muted">Target Module: <strong>{{ recording.module_name or analysis.module or 'Production' }}</strong></small>
+    </div>
+    {% if recording.confirmation_status == 'CONFIRMED' %}
+    <span class="badge bg-success fs-6 py-2 px-3 shadow-sm">
+      ✅ CONFIRMED &amp; APPLIED TO ERP
+    </span>
+    {% else %}
+    <form method="post" action="{{ url_for('voice.confirm', recording_id=recording.id) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <button class="btn btn-primary py-2 px-4 fw-bold shadow-sm" type="submit" style="border-radius: 8px;">
+        ✅ Apply &amp; Confirm ERP Update
+      </button>
+    </form>
+    {% endif %}
+  </div>
+</div>
+
+<div class="row g-3">
+  <!-- Left Column: Audio, Metadata, & Transcript -->
+  <div class="col-lg-7">
+    <div class="voice-card p-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="m-0 fs-5 fw-bold text-dark">🎧 Audio Recording &amp; Voice Player</h3>
+        <span class="badge bg-primary px-3 py-1">{{ recording.language }}</span>
+      </div>
+
+      <!-- Modern Audio Player Box -->
+      <div class="audio-player-box mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+          <label class="form-label text-muted small fw-bold m-0 text-uppercase" style="letter-spacing: 0.05em;">
+            🎵 Original Factory Audio Waveform
+          </label>
+          <button type="button" class="btn btn-sm btn-primary fw-bold px-3 shadow-sm" onclick="speakTranscriptNow()" style="border-radius: 8px;">
+            🔊 Listen to Tamil Voice (Read Aloud)
+          </button>
+        </div>
+        <audio controls class="w-100" id="audioPlayer" preload="auto">
+          <source src="{{ url_for('voice.get_audio', recording_id=recording.id) }}" type="{{ recording.mime_type or 'audio/wav' }}">
+          Your browser does not support the audio element.
+        </audio>
+        <div class="mt-2 text-end">
+          <small class="text-muted">Click <strong>🔊 Listen to Tamil Voice</strong> to hear this instruction read aloud in natural Tamil voice!</small>
+        </div>
+      </div>
+
+      <!-- Metadata Grid -->
+      <div class="row g-2">
+        <div class="col-md-6">
+          <div class="meta-chip">
+            <small class="text-muted d-block">Recorded By</small>
+            <strong class="text-dark">{{ recording.employee_name or 'Owner' }}</strong>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="meta-chip">
+            <small class="text-muted d-block">Department / Line</small>
+            <strong class="text-primary">{{ recording.department_name or 'General Factory' }}</strong>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="meta-chip">
+            <small class="text-muted d-block">Target Module</small>
+            <strong class="text-dark">{{ recording.module_name or analysis.module }}</strong>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="meta-chip">
+            <small class="text-muted d-block">Audio Duration</small>
+            <strong class="text-dark">{{ recording.duration_seconds }} seconds</strong>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="meta-chip">
+            <small class="text-muted d-block">Server Timestamp (Tamilnadu)</small>
+            <strong class="text-dark">{{ recording.server_timestamp }}</strong>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="meta-chip">
+            <small class="text-muted d-block">Confirmation Status</small>
+            <strong class="text-capitalize {% if recording.confirmation_status == 'CONFIRMED' %}text-success{% else %}text-warning{% endif %}">
+              {{ recording.confirmation_status }}
+            </strong>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Transcript Revisions -->
+    <div class="voice-card p-4 mt-3">
+      <h3 class="fs-5 fw-bold text-dark mb-3">📝 Tamil Speech Transcript &amp; History</h3>
+      {% for transcript in transcriptions %}
+      <div class="p-3 mb-2 rounded" style="background: #F8FAFC; border: 1px solid #E2E8F0;">
+        <div class="d-flex justify-content-between align-items-center">
+          <strong class="text-dark">Revision {{ transcript.revision_number }}{% if transcript.is_original %} <span class="badge bg-secondary-soft text-dark ms-1">Original Audio</span>{% endif %}</strong>
+          <small class="text-muted">{{ transcript.edited_at }}</small>
+        </div>
+        <p class="mt-2 mb-0 fs-6 text-dark fw-medium">{{ transcript.transcript_text }}</p>
+      </div>
+      {% else %}
+      <p class="text-muted">No transcript available.</p>
+      {% endfor %}
+
+      <!-- Edit / Revise Transcript Form -->
+      <form method="post" action="{{ url_for('voice.edit_transcript', recording_id=recording.id) }}" class="mt-3">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <label class="form-label fw-bold small text-muted text-uppercase">Edit / Correct Transcript Text</label>
+        <textarea class="form-control mb-2" name="transcript" rows="3" required style="border-radius: 8px;">{{ latest_transcript }}</textarea>
+        <button class="btn btn-secondary-soft fw-bold" type="submit" style="border-radius: 8px;">
+          ✏️ Save Transcript Correction
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Right Column: Extracted Entities & History -->
+  <div class="col-lg-5">
+    <div class="voice-card p-4">
+      <h3 class="fs-5 fw-bold text-dark mb-3">🔍 Extracted Entities &amp; Intent</h3>
+      <div class="d-flex flex-column gap-2">
+        <div class="d-flex justify-content-between p-2 rounded" style="background: #F8FAFC; border: 1px solid #F1F5F9;">
+          <span class="text-muted">Detected Intent</span>
+          <strong class="text-primary">{{ analysis.intent }}</strong>
+        </div>
+        <div class="d-flex justify-content-between p-2 rounded" style="background: #F8FAFC; border: 1px solid #F1F5F9;">
+          <span class="text-muted">Action Category</span>
+          <strong>{{ analysis.action_type }}</strong>
+        </div>
+        <div class="d-flex justify-content-between p-2 rounded" style="background: #F8FAFC; border: 1px solid #F1F5F9;">
+          <span class="text-muted">Identified Department</span>
+          <strong class="text-dark">{{ analysis.department_name }}</strong>
+        </div>
+        <div class="d-flex justify-content-between p-2 rounded" style="background: #F8FAFC; border: 1px solid #F1F5F9;">
+          <span class="text-muted">Target Module</span>
+          <strong class="text-dark">{{ analysis.module }}</strong>
+        </div>
+        {% for entity in entities %}
+        {% if entity.entity_key not in ['intent', 'action_type', 'department'] %}
+        <div class="d-flex justify-content-between p-2 rounded" style="background: #F8FAFC; border: 1px solid #F1F5F9;">
+          <span class="text-muted">{{ entity.entity_key|capitalize }}</span>
+          <strong class="text-dark">{{ entity.entity_value }}</strong>
+        </div>
+        {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Processing Audit History -->
+    <div class="voice-card p-4 mt-3">
+      <h3 class="fs-5 fw-bold text-dark mb-3">⏱️ Processing &amp; Audit Trail</h3>
+      {% for event in history %}
+      <div class="d-flex gap-3 align-items-start mb-3 pb-2 border-bottom">
+        <div style="width: 10px; height: 10px; border-radius: 50%; margin-top: 6px; background: {% if event.status=='COMPLETED' %}#16A34A{% else %}#D97706{% endif %}; flex-shrink: 0;"></div>
+        <div class="w-100">
+          <div class="d-flex justify-content-between">
+            <strong class="text-dark fs-6">{{ event.action }}</strong>
+            <small class="text-muted">{{ event.performed_at }}</small>
+          </div>
+          <small class="d-block text-muted">{{ event.detail }}</small>
+        </div>
+      </div>
+      {% else %}
+      <p class="text-muted mb-0">No audit history logged.</p>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<script>
+function speakTranscriptNow() {
+  if (!('speechSynthesis' in window)) {
+    alert("Speech synthesis is not supported by your browser.");
+    return;
+  }
+  window.speechSynthesis.cancel();
+  var text = {{ (latest_transcript or '')|tojson }};
+  if (!text || text.trim() === '') {
+    var pEl = document.querySelector('.voice-card p.fw-medium');
+    if (pEl) text = pEl.innerText;
+  }
+  if (!text || text.trim() === '') {
+    text = {{ (recording.remarks or '')|tojson }};
+  }
+  if (!text || text.trim() === '') {
+    alert("No transcript text found to read.");
+    return;
+  }
+  var utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = {{ ('en-IN' if recording.language == 'ENGLISH' else 'ta-IN')|tojson }};
+  utterance.rate = 0.95;
+  utterance.pitch = 1.0;
+  window.speechSynthesis.speak(utterance);
+}
+</script>
+{% endblock %}

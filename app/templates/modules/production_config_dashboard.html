@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block title %}Production Configuration{% endblock %}
+{% block content %}
+<div class="page-heading"><div><p class="eyebrow">Module 4</p><h1>Production Configuration</h1></div>{% if 'OWNER' in session.roles %}<a class="btn btn-primary" href="{{ url_for('modules.production_product_create') }}">Add Product</a>{% endif %}</div>
+<div class="row g-3">
+<div class="col-xl-2 col-md-4"><div class="kpi-card"><div><small>Production sections</small><strong>{{ sections }}</strong></div></div></div>
+<div class="col-xl-2 col-md-4"><div class="kpi-card"><div><small>Configured products</small><strong>{{ products_count }}</strong></div></div></div>
+<div class="col-xl-2 col-md-4"><div class="kpi-card"><div><small>Recipes / BOMs</small><strong>{{ recipes_count }}</strong></div></div></div>
+<div class="col-xl-2 col-md-4"><div class="kpi-card"><div><small>Machines</small><strong>{{ machines_count }}</strong></div></div></div>
+<div class="col-xl-2 col-md-4"><div class="kpi-card"><div><small>Workers</small><strong>{{ workers_count }}</strong></div></div></div>
+<div class="col-xl-2 col-md-4"><div class="kpi-card"><div><small>Active shifts</small><strong>{{ shifts_count }}</strong></div></div></div>
+</div>
+<div class="row g-3 mt-3"><div class="col-lg-8"><div class="panel table-panel"><h2 class="p-3 pb-0">Products</h2><div class="table-responsive"><table class="table align-middle"><thead><tr><th>Product</th><th>Section</th><th>Batch output</th><th>Daily target</th><th>Status</th><th>Actions</th></tr></thead><tbody>{% for product in products %}<tr><td><strong>{{ product.name }}</strong><small>{{ product.code }}</small></td><td>{{ product.department_name or 'Unassigned' }}</td><td>{{ product.standard_batch_output }}</td><td>{{ product.daily_target_batches }} batches</td><td><span class="status {{ 'active' if product.is_active else 'inactive' }}">{{ 'Active' if product.is_active else 'Inactive' }}</span></td><td><a class="btn btn-sm btn-secondary-soft" href="{{ url_for('modules.production_recipe',product_id=product.id) }}">Recipe</a>{% if 'OWNER' in session.roles %}<a class="btn btn-sm btn-secondary-soft ms-1" href="{{ url_for('modules.production_product_edit',product_id=product.id) }}">Edit</a>{% endif %}</td></tr>{% else %}<tr><td colspan="6" class="empty">No products configured.</td></tr>{% endfor %}</tbody></table></div></div></div><div class="col-lg-4"><div class="panel"><h2>Configuration warnings</h2>{% if warnings %}<ul class="review-list">{% for warning in warnings %}<li><span>{{ warning }}</span></li>{% endfor %}</ul>{% else %}<p class="text-muted">No dependency warnings detected.</p>{% endif %}</div></div></div>
+{% endblock %}

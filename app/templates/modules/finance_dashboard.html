@@ -1,0 +1,237 @@
+{% extends 'base.html' %}
+{% block title %}Financial Management - Smart Food Manufacturing Factory{% endblock %}
+{% block content %}
+<style>
+  .fin-hero {
+    background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
+    color: #FFFFFF;
+    border-radius: 14px;
+    padding: 20px 24px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.12);
+  }
+  .fin-kpi {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+  }
+  .fin-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+</style>
+
+<!-- Hero Header Banner -->
+<div class="fin-hero">
+  <div>
+    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+      <span style="background: rgba(34, 197, 94, 0.2); color: #86EFAC; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 9999px; text-transform: uppercase;">
+        Module 13
+      </span>
+      <span style="color: #94A3B8; font-size: 12px;">•</span>
+      <span style="color: #CBD5E1; font-size: 12.5px;">📍 Tamilnadu Plant Accounts</span>
+    </div>
+    <h1 style="font-size: 22px; font-weight: 800; margin: 0; color: #FFFFFF; letter-spacing: -0.01em;">
+      Financial Management &amp; Costing
+    </h1>
+    <p style="color: #94A3B8; margin: 4px 0 0 0; font-size: 13.5px;">
+      Monitor daily snack sales revenue, outstanding customer receivables, operational expenses, and ledger entries.
+    </p>
+  </div>
+  <div class="d-flex gap-2">
+    <a class="btn btn-light fw-bold" href="{{ url_for('modules.sales_dashboard') }}" style="border-radius: 8px; font-size: 13px;">
+      $ Sales &amp; Invoices
+    </a>
+    <a class="btn btn-primary fw-bold" href="{{ url_for('voice.record', module='Finance') }}" style="border-radius: 8px; font-size: 13px;">
+      🎙️ Finance Voice Note
+    </a>
+  </div>
+</div>
+
+<!-- 4 Financial KPI Cards -->
+<div class="row g-3">
+  <!-- Sales Value -->
+  <div class="col-md-3">
+    <div class="fin-kpi" style="border-left: 4px solid #10B981;">
+      <div class="fin-icon" style="background: #ECFDF5; color: #059669;">💰</div>
+      <div>
+        <strong style="font-size: 19px; font-weight: 800; color: #059669; line-height: 1.1; display: block;">{{ sales_total | rupees }}</strong>
+        <small style="color: #64748B; font-size: 11.5px; font-weight: 600;">Total Sales Value</small>
+      </div>
+    </div>
+  </div>
+
+  <!-- Receivables -->
+  <div class="col-md-3">
+    <div class="fin-kpi" style="border-left: 4px solid #F59E0B;">
+      <div class="fin-icon" style="background: #FEF3C7; color: #D97706;">📉</div>
+      <div>
+        <strong style="font-size: 19px; font-weight: 800; color: #D97706; line-height: 1.1; display: block;">{{ receivable | rupees }}</strong>
+        <small style="color: #64748B; font-size: 11.5px; font-weight: 600;">Customer Receivables</small>
+      </div>
+    </div>
+  </div>
+
+  <!-- Expenses -->
+  <div class="col-md-3">
+    <div class="fin-kpi" style="border-left: 4px solid #EF4444;">
+      <div class="fin-icon" style="background: #FEF2F2; color: #DC2626;">🏷️</div>
+      <div>
+        <strong style="font-size: 19px; font-weight: 800; color: #DC2626; line-height: 1.1; display: block;">{{ expense_total | rupees }}</strong>
+        <small style="color: #64748B; font-size: 11.5px; font-weight: 600;">Recorded Expenses</small>
+      </div>
+    </div>
+  </div>
+
+  <!-- Accounts -->
+  <div class="col-md-3">
+    <div class="fin-kpi" style="border-left: 4px solid #3B82F6;">
+      <div class="fin-icon" style="background: #EFF6FF; color: #2563EB;">🏦</div>
+      <div>
+        <strong style="font-size: 19px; font-weight: 800; color: #1E293B; line-height: 1.1; display: block;">{{ account_count }}</strong>
+        <small style="color: #64748B; font-size: 11.5px; font-weight: 600;">Active Ledger Accounts</small>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Main Split: Tables on Left, Forms on Right -->
+<div class="row g-3 mt-1">
+  <div class="col-lg-8">
+    <!-- Transactions Table -->
+    <div class="panel table-panel mb-3" style="border-radius: 12px; border: 1px solid #E2E8F0; overflow: hidden;">
+      <div class="p-3 bg-light border-bottom d-flex justify-content-between align-items-center">
+        <h2 style="font-size: 15px; font-weight: 700; color: #1E293B; margin: 0;">
+          🧾 Finance Transactions
+        </h2>
+        <span class="badge bg-white text-dark border">Ledger</span>
+      </div>
+      <div class="table-responsive">
+        <table class="table align-middle m-0">
+          <thead style="background: #F8FAFC; font-size: 12px; color: #64748B;">
+            <tr>
+              <th>Txn #</th>
+              <th>Account</th>
+              <th>Type</th>
+              <th>Amount</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for transaction in transactions %}
+            <tr>
+              <td><strong style="color: #1E293B; font-size: 13px;">{{ transaction.transaction_number }}</strong></td>
+              <td>{{ transaction.account_name or '—' }}</td>
+              <td>
+                <span class="badge {% if transaction.transaction_type == 'CREDIT' %}bg-success{% else %}bg-secondary{% endif %}">
+                  {{ transaction.transaction_type }}
+                </span>
+              </td>
+              <td><strong style="color: #059669;">{{ transaction.amount_paise | rupees }}</strong></td>
+              <td><small style="color: #64748B;">{{ transaction.transaction_date }}</small></td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5" class="text-center py-3 text-muted">No transactions recorded yet.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Expenses Table -->
+    <div class="panel table-panel" style="border-radius: 12px; border: 1px solid #E2E8F0; overflow: hidden;">
+      <div class="p-3 bg-light border-bottom d-flex justify-content-between align-items-center">
+        <h2 style="font-size: 15px; font-weight: 700; color: #1E293B; margin: 0;">
+          💸 Plant Expenses
+        </h2>
+        <span class="badge bg-white text-dark border">Cost Log</span>
+      </div>
+      <div class="table-responsive">
+        <table class="table align-middle m-0">
+          <thead style="background: #F8FAFC; font-size: 12px; color: #64748B;">
+            <tr>
+              <th>Category</th>
+              <th>Amount</th>
+              <th>Date</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for expense in expenses %}
+            <tr>
+              <td><strong style="color: #1E293B;">{{ expense.expense_category }}</strong></td>
+              <td><strong style="color: #DC2626;">{{ expense.amount_paise | rupees }}</strong></td>
+              <td><small style="color: #64748B;">{{ expense.expense_date }}</small></td>
+              <td><small style="color: #64748B;">{{ expense.notes or '—' }}</small></td>
+            </tr>
+            {% else %}
+            <tr><td colspan="4" class="text-center py-3 text-muted">No expenses recorded today.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Column: Quick Forms -->
+  <div class="col-lg-4">
+    {% if 'OWNER' in session.roles or 'FACTORY ADMIN' in session.roles %}
+    <!-- Record Expense -->
+    <div class="panel mb-3" style="border-radius: 12px; border: 1px solid #E2E8F0; padding: 18px;">
+      <h2 style="font-size: 15px; font-weight: 700; color: #1E293B; margin-bottom: 12px;">
+        💸 Record Plant Expense
+      </h2>
+      <form method="post" action="{{ url_for('modules.finance_expense_create') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <input class="form-control form-control-sm mb-2" name="expense_category" placeholder="e.g. Cooking Oil, Maintenance, Fuel" required>
+        <input class="form-control form-control-sm mb-2" name="amount_paise" type="number" min="1" placeholder="Amount (paise / 100 paise = ₹1)" required>
+        <input class="form-control form-control-sm mb-2" name="expense_date" type="date" required>
+        <textarea class="form-control form-control-sm mb-2" name="notes" rows="2" placeholder="Expense description..."></textarea>
+        <button class="btn btn-primary btn-sm w-100 fw-bold" type="submit">Record Expense</button>
+      </form>
+    </div>
+
+    <!-- New Account -->
+    <div class="panel" style="border-radius: 12px; border: 1px solid #E2E8F0; padding: 18px;">
+      <h2 style="font-size: 15px; font-weight: 700; color: #1E293B; margin-bottom: 12px;">
+        🏛️ New Finance Account
+      </h2>
+      <form method="post" action="{{ url_for('modules.finance_account_create') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <input class="form-control form-control-sm mb-2" name="code" placeholder="Account Code (e.g. ACC-101)" required>
+        <input class="form-control form-control-sm mb-2" name="name" placeholder="Account Name (e.g. Factory Operating Cash)" required>
+        <select class="form-select form-select-sm mb-2" name="account_type">
+          <option>ASSET</option>
+          <option>LIABILITY</option>
+          <option>INCOME</option>
+          <option>EXPENSE</option>
+          <option>EQUITY</option>
+        </select>
+        <input class="form-control form-control-sm mb-2" name="opening_balance_paise" type="number" value="0" placeholder="Opening Balance (paise)">
+        <button class="btn btn-secondary-soft btn-sm w-100 fw-bold" type="submit">Create Account</button>
+      </form>
+    </div>
+    {% else %}
+    <div class="panel" style="border-radius: 12px; border: 1px solid #E2E8F0; padding: 18px;">
+      <h2 style="font-size: 15px; font-weight: 700; color: #1E293B;">Read-only Finance View</h2>
+      <p class="text-muted small mb-0">Authorized financial ledger access granted.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block title %}{{ 'Edit Machine' if machine else 'Register Machine' }}{% endblock %}
+{% block content %}
+<div class="page-heading"><div><p class="eyebrow">Module 5</p><h1>{{ 'Edit Machine' if machine else 'Register Machine' }}</h1></div><a class="btn btn-secondary-soft" href="{{ url_for('modules.machines_dashboard') }}">Back</a></div>
+<div class="panel form-panel"><form method="post"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><div class="row g-3">
+{% if not machine %}<div class="col-md-6"><label class="form-label">Machine code *</label><input class="form-control" name="code" required></div>{% endif %}
+<div class="col-md-6"><label class="form-label">Machine name *</label><input class="form-control" name="name" value="{{ machine.name if machine else '' }}" required></div>
+<div class="col-md-6"><label class="form-label">Machine type</label><input class="form-control" name="machine_type" value="{{ machine.machine_type if machine else '' }}"></div>
+<div class="col-md-6"><label class="form-label">Production department</label><select class="form-select" name="department_id"><option value="">Unassigned</option>{% for department in departments %}<option value="{{ department.id }}" {% if machine and machine.department_id==department.id %}selected{% endif %}>{{ department.name }}</option>{% endfor %}</select></div>
+<div class="col-md-4"><label class="form-label">Capacity per hour</label><input class="form-control" name="capacity_per_hour" type="number" min="0" step="0.1" value="{{ machine.capacity_per_hour if machine else 0 }}"></div>
+<div class="col-md-4"><label class="form-label">Hourly cost (paise)</label><input class="form-control" name="hourly_cost_paise" type="number" min="0" value="{{ machine.hourly_cost_paise if machine else 0 }}"></div>
+<div class="col-md-4"><label class="form-label">Status</label><select class="form-select" name="status"><option value="OPERATIONAL" {% if not machine or machine.status=='OPERATIONAL' %}selected{% endif %}>Operational</option><option value="UNDER_MAINTENANCE" {% if machine and machine.status=='UNDER_MAINTENANCE' %}selected{% endif %}>Under maintenance</option><option value="INACTIVE" {% if machine and machine.status=='INACTIVE' %}selected{% endif %}>Inactive</option></select></div>
+{% if machine %}<div class="col-md-6"><label class="form-label">Next maintenance</label><input class="form-control" name="next_maintenance_at" type="datetime-local" value="{{ machine.next_maintenance_at or '' }}"></div>{% endif %}
+</div><div class="form-actions"><button class="btn btn-primary" type="submit">{{ 'Save Machine' if machine else 'Register Machine' }}</button></div></form></div>
+{% endblock %}

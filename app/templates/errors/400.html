@@ -1,0 +1,1 @@
+{% extends 'base.html' %}{% block title %}Bad Request{% endblock %}{% block content_full %}<div class="login-page"><div class="login-card text-center"><h1>400</h1><h2>Invalid request</h2><p>{{ message }}</p><a class="btn btn-primary mt-3" href="{{ url_for('dashboards.dashboard') if session.user_id else url_for('auth.login') }}">Return</a></div></div>{% endblock %}

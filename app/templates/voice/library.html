@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+{% block title %}Voice Records Library - Smart Food Manufacturing Factory{% endblock %}
+{% block content %}
+<style>
+  .lib-hero {
+    background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
+    color: #FFFFFF;
+    border-radius: 16px;
+    padding: 22px 26px;
+    margin-bottom: 22px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    box-shadow: 0 4px 18px rgba(15, 23, 42, 0.12);
+  }
+  .lib-card {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 14px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+  }
+  .filter-box {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 14px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+  }
+</style>
+
+<!-- Hero Header Banner -->
+<div class="lib-hero">
+  <div>
+    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+      <span style="background: rgba(59, 130, 246, 0.2); color: #93C5FD; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 9999px; text-transform: uppercase;">
+        🎙️ Voice Dispatch Library
+      </span>
+      <span style="color: #64748B; font-size: 12px;">•</span>
+      <span style="color: #CBD5E1; font-size: 12.5px;">📍 Tamilnadu Smart Factory</span>
+    </div>
+    <h1 style="font-size: 24px; font-weight: 800; margin: 0; color: #FFFFFF; letter-spacing: -0.01em;">
+      Central Voice Records Library
+    </h1>
+    <p style="color: #94A3B8; margin: 4px 0 0 0; font-size: 13.5px;">
+      Browse, search, listen, and audit real-time shop floor Tamil voice dispatches and ERP actions.
+    </p>
+  </div>
+  <div class="d-flex gap-2 flex-wrap">
+    <a class="btn btn-outline-light fw-bold" href="{{ url_for('modules.factory_layout') }}" style="border-radius: 8px; font-size: 13px;">
+      🗺️ 2D Factory Layout
+    </a>
+    <a class="btn btn-light fw-bold" href="{{ url_for('voice.record') }}" style="border-radius: 8px; font-size: 13px; color: #0F172A;">
+      🎙️ New Voice Recording
+    </a>
+  </div>
+</div>
+
+<!-- Filters Panel -->
+<div class="filter-box">
+  <form method="get" class="row g-2 align-items-center">
+    <div class="col-md-3">
+      <input class="form-control" name="search" value="{{ search }}" placeholder="Search Tamil text or code..." style="border-radius: 8px;">
+    </div>
+    <div class="col-md-3">
+      <select class="form-select" name="department_id" style="border-radius: 8px;">
+        <option value="">All Factory Departments</option>
+        {% for department in departments %}
+        <option value="{{ department.id }}" {% if selected_department==department.id|string %}selected{% endif %}>
+          {{ department.name }}
+        </option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-2">
+      <select class="form-select" name="language" style="border-radius: 8px;">
+        <option value="">All Languages</option>
+        <option value="TAMIL" {% if selected_language=='TAMIL' %}selected{% endif %}>Tamil</option>
+        <option value="TAMIL_ENGLISH_MIXED" {% if selected_language=='TAMIL_ENGLISH_MIXED' %}selected{% endif %}>Tamil-English</option>
+        <option value="ENGLISH" {% if selected_language=='ENGLISH' %}selected{% endif %}>English</option>
+      </select>
+    </div>
+    <div class="col-md-2">
+      <select class="form-select" name="status" style="border-radius: 8px;">
+        <option value="">All Statuses</option>
+        <option value="CONFIRMED" {% if selected_status=='CONFIRMED' %}selected{% endif %}>Confirmed</option>
+        <option value="PENDING" {% if selected_status=='PENDING' %}selected{% endif %}>Pending</option>
+      </select>
+    </div>
+    <div class="col-md-2 d-flex gap-2">
+      <button class="btn btn-primary w-100 fw-bold" type="submit" style="border-radius: 8px;">Filter</button>
+      <a class="btn btn-outline-secondary" href="{{ url_for('voice.library') }}" style="border-radius: 8px;">Reset</a>
+    </div>
+  </form>
+</div>
+
+<!-- Table Panel -->
+<div class="lib-card">
+  <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
+    <h3 class="m-0 fs-5 fw-bold text-dark">📋 Voice Recordings Registry</h3>
+    <span class="badge bg-light text-dark border">{{ recordings|length }} Records</span>
+  </div>
+  <div class="table-responsive">
+    <table class="table align-middle mb-0">
+      <thead style="background: #F8FAFC; color: #475569; font-size: 12px; text-transform: uppercase;">
+        <tr>
+          <th style="padding: 12px 16px;">Code / Subject</th>
+          <th>Department &amp; Module</th>
+          <th>Tamil Transcript</th>
+          <th>Language</th>
+          <th>Status</th>
+          <th>Date &amp; Time</th>
+          <th style="padding: 12px 16px;">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for record in recordings %}
+        <tr>
+          <td style="padding: 12px 16px;">
+            <strong class="text-dark">{{ record.recording_code }}</strong>
+            <small class="d-block text-muted">{{ record.title }}</small>
+          </td>
+          <td>
+            <span class="badge bg-light text-dark border">{{ record.department_name or 'General Factory' }}</span>
+            <small class="d-block text-muted">{{ record.module_name or 'General' }}</small>
+          </td>
+          <td style="max-width: 280px;">
+            <p class="mb-0 text-truncate fw-medium text-dark" title="{{ record.transcript or '' }}">
+              {{ record.transcript or 'Audio recording logged' }}
+            </p>
+            {% if record.remarks %}
+            <small class="text-primary d-block text-truncate">👉 {{ record.remarks }}</small>
+            {% endif %}
+          </td>
+          <td>
+            <span class="badge {% if record.language == 'TAMIL' %}bg-primary{% elif record.language == 'TAMIL_ENGLISH_MIXED' %}bg-info text-dark{% else %}bg-secondary{% endif %}">
+              {{ record.language }}
+            </span>
+          </td>
+          <td>
+            <span class="status {{ 'active' if record.confirmation_status == 'CONFIRMED' else 'inactive' }}">
+              {{ record.confirmation_status }}
+            </span>
+          </td>
+          <td>
+            <small class="text-muted">{{ record.server_timestamp }}</small>
+          </td>
+          <td style="padding: 12px 16px;">
+            <a class="btn btn-sm btn-primary fw-bold" href="{{ url_for('voice.detail', recording_id=record.id) }}" style="border-radius: 6px;">
+              View &amp; Listen
+            </a>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="7" class="text-center py-4 text-muted">No voice records found matching criteria.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

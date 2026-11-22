@@ -1,0 +1,279 @@
+{% extends 'base.html' %}
+{% block title %}Labour & Workforce - Smart Food Manufacturing Factory{% endblock %}
+{% block content %}
+<style>
+  .lab-hero {
+    background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
+    color: #FFFFFF;
+    border-radius: 14px;
+    padding: 20px 24px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.12);
+  }
+  .lab-kpi {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .lab-kpi:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(0,0,0,0.06);
+  }
+  .lab-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+  .lab-card {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+  }
+</style>
+
+<!-- Hero Header Banner -->
+<div class="lab-hero">
+  <div>
+    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+      <span style="background: rgba(34, 197, 94, 0.2); color: #86EFAC; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 9999px; text-transform: uppercase;">
+        Module 3
+      </span>
+      <span style="color: #94A3B8; font-size: 12px;">•</span>
+      <span style="color: #CBD5E1; font-size: 12.5px;">📍 Tamilnadu Plant Personnel</span>
+    </div>
+    <h1 style="font-size: 22px; font-weight: 800; margin: 0; color: #FFFFFF; letter-spacing: -0.01em;">
+      Labour &amp; Workforce Management
+    </h1>
+    <p style="color: #94A3B8; margin: 4px 0 0 0; font-size: 13.5px;">
+      Manage production line operators, shift rosters, daily check-in / check-out times, and leave requests.
+    </p>
+  </div>
+  <div class="d-flex gap-2 flex-wrap">
+    {% if 'OWNER' in session.roles or 'FACTORY ADMIN' in session.roles %}
+    <a class="btn btn-primary fw-bold" href="{{ url_for('modules.employee_create') }}" style="border-radius: 8px; font-size: 13px;">
+      + Add Employee
+    </a>
+    {% endif %}
+    <a class="btn btn-light fw-bold" href="{{ url_for('modules.factory_layout') }}" style="border-radius: 8px; font-size: 13px; color: #0F172A;">
+      🗺️ 2D Factory Layout
+    </a>
+  </div>
+</div>
+
+<!-- 4 Colored KPI Cards -->
+<div class="row g-3 mb-3">
+  <div class="col-md-3">
+    <div class="lab-kpi" style="border-left: 4px solid #3B82F6;">
+      <div class="lab-icon" style="background: #EFF6FF; color: #1D4ED8;">👥</div>
+      <div>
+        <small style="color: #64748B; font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 0.04em;">Total Workforce</small>
+        <div style="font-size: 20px; font-weight: 800; color: #0F172A;">{{ total }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="lab-kpi" style="border-left: 4px solid #10B981;">
+      <div class="lab-icon" style="background: #ECFDF5; color: #047857;">🧑‍🍳</div>
+      <div>
+        <small style="color: #64748B; font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 0.04em;">Active Staff</small>
+        <div style="font-size: 20px; font-weight: 800; color: #0F172A;">{{ active }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="lab-kpi" style="border-left: 4px solid #8B5CF6;">
+      <div class="lab-icon" style="background: #F3E8FF; color: #6D28D9;">⏱️</div>
+      <div>
+        <small style="color: #64748B; font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 0.04em;">Attendance Today</small>
+        <div style="font-size: 20px; font-weight: 800; color: #0F172A;">{{ attendance_today }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="lab-kpi" style="border-left: 4px solid #F59E0B;">
+      <div class="lab-icon" style="background: #FEF3C7; color: #B45309;">📅</div>
+      <div>
+        <small style="color: #64748B; font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 0.04em;">Pending Leave</small>
+        <div style="font-size: 20px; font-weight: 800; color: #0F172A;">{{ pending_leave }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <!-- Left Column: Employee List -->
+  <div class="col-lg-8">
+    <div class="lab-card">
+      <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
+        <h3 class="m-0 fs-5 fw-bold text-dark">📋 Factory Workforce Roster</h3>
+        <span class="badge bg-light text-dark border">{{ employees|length }} Employees</span>
+      </div>
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead style="background: #F8FAFC; color: #475569; font-size: 12px; text-transform: uppercase;">
+            <tr>
+              <th style="padding: 12px 16px;">Employee &amp; Code</th>
+              <th>Department</th>
+              <th>Designation</th>
+              <th>Assigned Shift</th>
+              <th>Status</th>
+              {% if 'OWNER' in session.roles or 'FACTORY ADMIN' in session.roles %}
+              <th style="padding: 12px 16px;">Actions</th>
+              {% endif %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for employee in employees %}
+            <tr>
+              <td style="padding: 12px 16px;">
+                <strong class="text-dark">{{ employee.name }}</strong>
+                <small class="d-block text-muted">{{ employee.employee_code }}</small>
+              </td>
+              <td><span class="badge bg-light text-dark border">{{ employee.department_name or 'Unassigned' }}</span></td>
+              <td>{{ employee.designation or '—' }}</td>
+              <td>{{ employee.shift_name or '—' }}</td>
+              <td>
+                <span class="status {{ 'active' if employee.status=='ACTIVE' else 'inactive' }}">
+                  {{ employee.status }}
+                </span>
+              </td>
+              {% if 'OWNER' in session.roles or 'FACTORY ADMIN' in session.roles %}
+              <td style="padding: 12px 16px;">
+                <div class="d-flex gap-1">
+                  <a class="btn btn-sm btn-primary fw-bold" href="{{ url_for('modules.employee_profile', employee_id=employee.id) }}" style="border-radius: 6px;">Profile</a>
+                  <a class="btn btn-sm btn-secondary-soft fw-bold" href="{{ url_for('voice.record', module='Labour', record_type='Employee', record_id=employee.id) }}" style="border-radius: 6px;">🎙️ Voice</a>
+                  <a class="btn btn-sm btn-outline-secondary fw-bold" href="{{ url_for('modules.employee_edit', employee_id=employee.id) }}" style="border-radius: 6px;">Edit</a>
+                </div>
+              </td>
+              {% endif %}
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="6" class="text-center py-4 text-muted">No workforce records available.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Column: Record Attendance & Submit Leave -->
+  <div class="col-lg-4">
+    <div class="lab-card p-3 mb-3">
+      <h3 class="fs-5 fw-bold text-dark mb-3">⏱️ Record Attendance</h3>
+      <form method="post" action="{{ url_for('modules.labour_attendance') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        
+        <label class="form-label small text-muted text-uppercase fw-bold">Employee</label>
+        <select class="form-select mb-2" name="employee_id" required style="border-radius: 8px;">
+          <option value="">-- Select Employee --</option>
+          {% for employee in employees %}
+          <option value="{{ employee.id }}">{{ employee.name }}</option>
+          {% endfor %}
+        </select>
+
+        <label class="form-label small text-muted text-uppercase fw-bold">Date</label>
+        <input class="form-control mb-2" type="date" name="attendance_date" required style="border-radius: 8px;">
+
+        <div class="row g-2 mb-2">
+          <div class="col-6">
+            <label class="form-label small text-muted text-uppercase fw-bold">Status</label>
+            <select class="form-select" name="status" required style="border-radius: 8px;">
+              <option value="PRESENT">Present</option>
+              <option value="ABSENT">Absent</option>
+              <option value="LEAVE">Leave</option>
+              <option value="HALF_DAY">Half day</option>
+            </select>
+          </div>
+          <div class="col-6">
+            <label class="form-label small text-muted text-uppercase fw-bold">Shift</label>
+            <select class="form-select" name="shift_id" style="border-radius: 8px;">
+              <option value="">-- Shift --</option>
+              {% for shift in shifts %}
+              <option value="{{ shift.id }}">{{ shift.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <div class="row g-2 mb-3">
+          <div class="col-6">
+            <label class="form-label small text-muted text-uppercase fw-bold">Check-In</label>
+            <input class="form-control" type="time" name="check_in" style="border-radius: 8px;">
+          </div>
+          <div class="col-6">
+            <label class="form-label small text-muted text-uppercase fw-bold">Check-Out</label>
+            <input class="form-control" type="time" name="check_out" style="border-radius: 8px;">
+          </div>
+        </div>
+
+        <button class="btn btn-primary w-100 fw-bold py-2" type="submit" style="border-radius: 8px;">
+          Save Attendance Entry
+        </button>
+      </form>
+    </div>
+
+    <!-- Submit Leave Request -->
+    <div class="lab-card p-3">
+      <h3 class="fs-5 fw-bold text-dark mb-3">🏖️ Submit Leave Application</h3>
+      <form method="post" action="{{ url_for('modules.labour_leave') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        
+        <label class="form-label small text-muted text-uppercase fw-bold">Employee</label>
+        <select class="form-select mb-2" name="employee_id" required style="border-radius: 8px;">
+          <option value="">-- Choose Employee --</option>
+          {% for employee in employees %}
+          <option value="{{ employee.id }}">{{ employee.name }}</option>
+          {% endfor %}
+        </select>
+
+        <label class="form-label small text-muted text-uppercase fw-bold">Leave Type</label>
+        <select class="form-select mb-2" name="leave_type" required style="border-radius: 8px;">
+          <option>Casual</option>
+          <option>Sick</option>
+          <option>Earned</option>
+          <option>Unpaid</option>
+        </select>
+
+        <div class="row g-2 mb-2">
+          <div class="col-6">
+            <label class="form-label small text-muted text-uppercase fw-bold">From</label>
+            <input class="form-control" type="date" name="from_date" required style="border-radius: 8px;">
+          </div>
+          <div class="col-6">
+            <label class="form-label small text-muted text-uppercase fw-bold">To</label>
+            <input class="form-control" type="date" name="to_date" required style="border-radius: 8px;">
+          </div>
+        </div>
+
+        <label class="form-label small text-muted text-uppercase fw-bold">Reason</label>
+        <textarea class="form-control mb-3" name="reason" rows="2" placeholder="Leave justification" style="border-radius: 8px;"></textarea>
+
+        <button class="btn btn-secondary-soft w-100 fw-bold py-2" type="submit" style="border-radius: 8px;">
+          Submit Leave
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

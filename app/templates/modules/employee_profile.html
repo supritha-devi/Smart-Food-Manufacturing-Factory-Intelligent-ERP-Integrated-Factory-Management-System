@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block title %}{{ employee.name }} Profile{% endblock %}
+{% block content %}
+<div class="page-heading">
+  <div><p class="eyebrow">Employee Profile</p><h1>{{ employee.name }}</h1></div>
+  <div class="d-flex gap-2">
+    <a class="btn btn-secondary-soft" href="{{ url_for('modules.labour_dashboard') }}">Back</a>
+    <a class="btn btn-secondary-soft" href="{{ url_for('voice.record',module='Labour',record_type='Employee',record_id=employee.id) }}">Voice Note</a>
+    {% if 'OWNER' in session.roles or 'FACTORY ADMIN' in session.roles %}<a class="btn btn-primary" href="{{ url_for('modules.employee_edit',employee_id=employee.id) }}">Edit Profile</a>{% endif %}
+  </div>
+</div>
+<div class="row g-3">
+  <div class="col-lg-6"><div class="panel"><h2>Identity</h2><div class="labour-identity-grid">
+    <div><small>Employee code</small><strong>{{ employee.employee_code or '—' }}</strong></div>
+    <div><small>Name</small><strong>{{ employee.name or '—' }}</strong></div>
+    <div><small>Gender</small><strong>{{ employee.gender or '—' }}</strong></div>
+    <div><small>Date of birth</small><strong>{{ employee.date_of_birth or '—' }}</strong></div>
+    <div><small>Nationality</small><strong>{{ employee.nationality or '—' }}</strong></div>
+    <div><small>Blood group</small><strong>{{ employee.blood_group or '—' }}</strong></div>
+    <div><small>Caste</small><strong>{{ employee.caste or '—' }}</strong></div>
+    <div><small>Religion</small><strong>{{ employee.religion or '—' }}</strong></div>
+  </div></div></div>
+  <div class="col-lg-6"><div class="panel"><h2>Work Information</h2><div class="labour-identity-grid">
+    <div><small>Department</small><strong>{{ employee.department_name or 'Unassigned' }}</strong></div>
+    <div><small>Designation</small><strong>{{ employee.designation or '—' }}</strong></div>
+    <div><small>Employment type</small><strong>{{ employee.employment_type or '—' }}</strong></div>
+    <div><small>Shift</small><strong>{{ employee.shift_name or 'Unassigned' }}</strong></div>
+    <div><small>Joined</small><strong>{{ employee.date_joining or '—' }}</strong></div>
+    <div><small>Status</small><strong>{{ employee.status or '—' }}</strong></div>
+  </div></div></div>
+  <div class="col-lg-6"><div class="panel"><h2>Identity Documents</h2><div class="labour-identity-grid">
+    <div><small>Aadhaar number</small><strong>{{ employee.aadhaar_number or '—' }}</strong></div>
+    <div><small>PAN number</small><strong>{{ employee.pan_number or '—' }}</strong></div>
+    <div><small>Voter ID</small><strong>{{ employee.voter_id_number or '—' }}</strong></div>
+    <div><small>Ration card</small><strong>{{ employee.ration_card_number or '—' }}</strong></div>
+    <div><small>ID card type</small><strong>{{ employee.id_card_type or '—' }}</strong></div>
+    <div><small>ID card number</small><strong>{{ employee.id_card_number or '—' }}</strong></div>
+  </div></div></div>
+  <div class="col-lg-6"><div class="panel"><h2>Address & Contact</h2><div class="labour-identity-grid">
+    <div><small>Phone</small><strong>{{ employee.phone or '—' }}</strong></div>
+    <div><small>Email</small><strong>{{ employee.email or '—' }}</strong></div>
+    <div><small>State</small><strong>{{ employee.state or '—' }}</strong></div>
+    <div><small>District</small><strong>{{ employee.district or '—' }}</strong></div>
+    <div><small>Current address</small><strong>{{ employee.address or '—' }}</strong></div>
+    <div><small>Permanent address</small><strong>{{ employee.permanent_address or '—' }}</strong></div>
+    <div><small>Emergency contact name</small><strong>{{ employee.emergency_contact_name or '—' }}</strong></div>
+    <div><small>Emergency contact number</small><strong>{{ employee.emergency_contact or '—' }}</strong></div>
+  </div></div></div>
+</div>
+{% endblock %}

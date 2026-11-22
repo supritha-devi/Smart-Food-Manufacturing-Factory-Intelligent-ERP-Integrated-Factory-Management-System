@@ -1,0 +1,972 @@
+{% extends 'base.html' %}
+{% block title %}Smart Food Manufacturing Factory - Factory Layout{% endblock %}
+{% block content %}
+<style>
+  /* Ensure full visibility across all desktop and laptop resolutions */
+  .reference-layout {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) 280px !important;
+    gap: 14px !important;
+    align-items: start !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  .reference-map {
+    min-height: 0 !important;
+    height: auto !important;
+    width: 100% !important;
+    padding: 8px !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+    background: #F8FAFC !important;
+    border: 1px solid #CBD5E1 !important;
+    border-radius: 14px !important;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.05) !important;
+  }
+  .reference-map svg, #factoryMap svg {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    height: auto !important;
+    display: block !important;
+    margin: 0 auto !important;
+    border-radius: 10px !important;
+  }
+  .zone {
+    cursor: pointer;
+    transition: transform 0.15s ease, filter 0.15s ease;
+  }
+  .zone:hover {
+    filter: brightness(1.03) drop-shadow(0 0 6px rgba(37, 99, 235, 0.35));
+  }
+  .selected-dept-bar {
+    background: #FFFFFF;
+    border: 1px solid #CBD5E1;
+    border-radius: 10px;
+    padding: 10px 14px;
+    margin-top: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+  @media (max-width: 1100px) {
+    .reference-layout {
+      grid-template-columns: 1fr !important;
+    }
+  }
+</style>
+
+<!-- Top Page Header Bar -->
+<div class="page-heading factory-page-heading" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+  <div style="display: flex; align-items: center; gap: 8px;">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="#0D9488" style="flex-shrink: 0;">
+      <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+    </svg>
+    <span style="font-size: 16px; font-weight: 700; color: #1E293B; letter-spacing: -0.01em;">
+      Factory Layout <span style="color: #94A3B8; margin: 0 4px;">•</span> Interactive 2D Map
+    </span>
+  </div>
+  <div style="display: flex; align-items: center; gap: 10px;">
+    <a class="btn btn-primary" href="{{ url_for('voice.record') }}" style="font-size: 13px; padding: 6px 14px; border-radius: 8px; font-weight: 600;">
+      🎙️ Record Factory Voice
+    </a>
+    <span class="layout-status" style="background: #DCFCE7; color: #15803D; border: 1px solid #BBF7D0; border-radius: 9999px; padding: 5px 14px; font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 7px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+      <span class="status-dot" style="width: 9px; height: 9px; border-radius: 50%; background: #22C55E; display: inline-block; box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.25);"></span>
+      Factory Status: Operational
+    </span>
+  </div>
+</div>
+
+<!-- Main Layout Shell: Map on Left, Aside on Right -->
+<div class="factory-layout-shell reference-layout">
+  
+  <!-- Interactive 2D Map Container -->
+  <div>
+    <div class="factory-map reference-map" id="factoryMap">
+      <svg viewBox="0 0 1100 660" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Interactive top view 2D map of Smart Food Manufacturing Factory">
+        <defs>
+          <!-- Card Drop Shadow -->
+          <filter id="cardShadow" x="-15%" y="-20%" width="130%" height="150%">
+            <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#0f172a" flood-opacity="0.16"/>
+          </filter>
+          <filter id="bldgShadow" x="-8%" y="-8%" width="116%" height="120%">
+            <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#0f172a" flood-opacity="0.12"/>
+          </filter>
+          <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="2" result="blur"/>
+            <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+          </filter>
+
+          <!-- Building Roof Patterns & Gradients -->
+          <linearGradient id="gradRawMat" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#3B82F6"/>
+            <stop offset="100%" stop-color="#1D4ED8"/>
+          </linearGradient>
+          <linearGradient id="gradPkgMat" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#14B8A6"/>
+            <stop offset="100%" stop-color="#0F766E"/>
+          </linearGradient>
+          <linearGradient id="gradMurukku" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#FBBF24"/>
+            <stop offset="100%" stop-color="#D97706"/>
+          </linearGradient>
+          <linearGradient id="gradPotato" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#A3E635"/>
+            <stop offset="100%" stop-color="#65A30D"/>
+          </linearGradient>
+          <linearGradient id="gradBanana" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#C084FC"/>
+            <stop offset="100%" stop-color="#7E22CE"/>
+          </linearGradient>
+          <linearGradient id="gradMixture" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#FB7185"/>
+            <stop offset="100%" stop-color="#E11D48"/>
+          </linearGradient>
+          <linearGradient id="gradMysore" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#22D3EE"/>
+            <stop offset="100%" stop-color="#0891B2"/>
+          </linearGradient>
+          <linearGradient id="gradQuality" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#60A5FA"/>
+            <stop offset="100%" stop-color="#0284C7"/>
+          </linearGradient>
+          <linearGradient id="gradFinished" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#34D399"/>
+            <stop offset="100%" stop-color="#047857"/>
+          </linearGradient>
+          <linearGradient id="gradDispatch" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#A78BFA"/>
+            <stop offset="100%" stop-color="#6D28D9"/>
+          </linearGradient>
+          <linearGradient id="gradAdmin" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#CBD5E1"/>
+            <stop offset="100%" stop-color="#64748B"/>
+          </linearGradient>
+
+          <!-- Corrugated Roof Stripes -->
+          <pattern id="roofStripeBlue" width="12" height="12" patternUnits="userSpaceOnUse">
+            <rect width="6" height="12" fill="rgba(255,255,255,0.12)"/>
+          </pattern>
+          <pattern id="roofStripeTeal" width="12" height="12" patternUnits="userSpaceOnUse">
+            <rect width="6" height="12" fill="rgba(255,255,255,0.12)"/>
+          </pattern>
+          <pattern id="roofStripeGreen" width="12" height="12" patternUnits="userSpaceOnUse">
+            <rect width="6" height="12" fill="rgba(255,255,255,0.12)"/>
+          </pattern>
+        </defs>
+
+        <!-- BASE CANVAS & ROADWAYS -->
+        <rect width="1100" height="660" fill="#E2E8F0"/>
+        <!-- Compound inner surface (Asphalt & Paving) -->
+        <rect x="22" y="18" width="1056" height="624" rx="14" fill="#64748B" stroke="#94A3B8" stroke-width="4"/>
+        <rect x="30" y="26" width="1040" height="608" rx="10" fill="#475569"/>
+        
+        <!-- Horizontal Avenues -->
+        <rect x="30" y="160" width="1040" height="22" fill="#475569"/>
+        <rect x="30" y="286" width="1040" height="22" fill="#475569"/>
+        <rect x="30" y="412" width="1040" height="22" fill="#475569"/>
+
+        <!-- Central Vertical Boulevard with dashed white road marking -->
+        <rect x="496" y="26" width="76" height="608" fill="#334155"/>
+        <line x1="534" y1="26" x2="534" y2="160" stroke="#FFFFFF" stroke-width="2.5" stroke-dasharray="10 8"/>
+        <line x1="534" y1="412" x2="534" y2="634" stroke="#FFFFFF" stroke-width="2.5" stroke-dasharray="10 8"/>
+
+        <!-- Perimeter Compound Wall & Pillars -->
+        <rect x="26" y="22" width="1048" height="616" rx="12" fill="none" stroke="#E2E8F0" stroke-width="5"/>
+        <rect x="28" y="24" width="1044" height="612" rx="10" fill="none" stroke="#78350F" stroke-width="2" stroke-dasharray="16 32"/>
+
+        <!-- Top Gate (Entrance) -->
+        <g id="topGate">
+          <rect x="492" y="18" width="12" height="12" rx="2" fill="#F8FAFC" stroke="#334155" stroke-width="2"/>
+          <rect x="564" y="18" width="12" height="12" rx="2" fill="#F8FAFC" stroke="#334155" stroke-width="2"/>
+          <line x1="506" y1="24" x2="562" y2="24" stroke="#FFFFFF" stroke-width="3" stroke-dasharray="4 4"/>
+        </g>
+
+        <!-- Bottom Gate (Exit) -->
+        <g id="bottomGate">
+          <rect x="492" y="630" width="12" height="12" rx="2" fill="#F8FAFC" stroke="#334155" stroke-width="2"/>
+          <rect x="564" y="630" width="12" height="12" rx="2" fill="#F8FAFC" stroke="#334155" stroke-width="2"/>
+          <line x1="506" y1="636" x2="562" y2="636" stroke="#FFFFFF" stroke-width="3" stroke-dasharray="4 4"/>
+        </g>
+
+        <!-- Clean Architectural Perimeter Wall & Posts (No border trees) -->
+        <g id="compoundPerimeter">
+          <rect x="22" y="18" width="1056" height="624" rx="12" fill="none" stroke="#475569" stroke-width="3"/>
+          <rect x="26" y="22" width="1048" height="616" rx="10" fill="none" stroke="#94A3B8" stroke-width="1.5" stroke-dasharray="24 24"/>
+          <!-- Corner Guard Posts -->
+          <circle cx="26" cy="22" r="5" fill="#334155"/>
+          <circle cx="1074" cy="22" r="5" fill="#334155"/>
+          <circle cx="26" cy="638" r="5" fill="#334155"/>
+          <circle cx="1074" cy="638" r="5" fill="#334155"/>
+        </g>
+
+        <!-- ========================================== -->
+        <!-- ROW 1: WAREHOUSES                          -->
+        <!-- ========================================== -->
+
+        <!-- 1. RAW MATERIAL WAREHOUSE (Top Left) -->
+        <g class="zone map-zone" tabindex="0" role="button" data-name="Raw Material Warehouse" data-status="Active" data-detail="Storage of flour, spices, pulses, and cooking oils" filter="url(#bldgShadow)">
+          <rect x="54" y="46" width="436" height="112" rx="8" fill="url(#gradRawMat)" stroke="#1E40AF" stroke-width="3" style="fill: url(#gradRawMat) !important; stroke: #1E40AF !important;"/>
+          <rect x="54" y="46" width="436" height="112" rx="8" fill="url(#roofStripeBlue)"/>
+          
+          <rect x="60" y="52" width="424" height="100" rx="6" fill="#F1F5F9" stroke="#CBD5E1" stroke-width="1.5" style="fill: #F1F5F9 !important;"/>
+          <rect x="64" y="56" width="120" height="92" rx="4" fill="#E2E8F0"/>
+          <rect x="358" y="56" width="120" height="92" rx="4" fill="#E2E8F0"/>
+
+          <!-- Interior Left: Sacks on Wooden Pallets -->
+          <g id="sacksRawMat">
+            <rect x="72" y="66" width="44" height="34" fill="#D97706" stroke="#92400E" stroke-width="1" rx="2"/>
+            <line x1="72" y1="77" x2="116" y2="77" stroke="#78350F" stroke-width="1"/>
+            <line x1="72" y1="88" x2="116" y2="88" stroke="#78350F" stroke-width="1"/>
+            <rect x="74" y="68" width="19" height="14" rx="4" fill="#E2BA84" stroke="#B45309" stroke-width="1"/>
+            <rect x="95" y="68" width="19" height="14" rx="4" fill="#D4A368" stroke="#B45309" stroke-width="1"/>
+            <rect x="74" y="84" width="19" height="14" rx="4" fill="#D4A368" stroke="#B45309" stroke-width="1"/>
+            <rect x="95" y="84" width="19" height="14" rx="4" fill="#E2BA84" stroke="#B45309" stroke-width="1"/>
+            <ellipse cx="84" cy="75" rx="7" ry="4" fill="#F5DEB3"/>
+            <ellipse cx="105" cy="75" rx="7" ry="4" fill="#F5DEB3"/>
+
+            <rect x="126" y="66" width="44" height="34" fill="#D97706" stroke="#92400E" stroke-width="1" rx="2"/>
+            <rect x="128" y="68" width="19" height="14" rx="4" fill="#E2BA84" stroke="#B45309" stroke-width="1"/>
+            <rect x="149" y="68" width="19" height="14" rx="4" fill="#D4A368" stroke="#B45309" stroke-width="1"/>
+            <rect x="128" y="84" width="19" height="14" rx="4" fill="#D4A368" stroke="#B45309" stroke-width="1"/>
+            <rect x="149" y="84" width="19" height="14" rx="4" fill="#E2BA84" stroke="#B45309" stroke-width="1"/>
+          </g>
+
+          <!-- Interior Right: Stacks & Forklift -->
+          <g id="forkliftRawMat">
+            <rect x="368" y="66" width="38" height="32" fill="#D97706" stroke="#92400E" stroke-width="1" rx="2"/>
+            <rect x="370" y="68" width="16" height="13" rx="3" fill="#E2BA84" stroke="#B45309" stroke-width="1"/>
+            <rect x="388" y="68" width="16" height="13" rx="3" fill="#D4A368" stroke="#B45309" stroke-width="1"/>
+            <rect x="370" y="83" width="16" height="13" rx="3" fill="#D4A368" stroke="#B45309" stroke-width="1"/>
+            <rect x="388" y="83" width="16" height="13" rx="3" fill="#E2BA84" stroke="#B45309" stroke-width="1"/>
+
+            <g transform="translate(420, 80)">
+              <rect x="-2" y="-4" width="7" height="6" rx="1" fill="#1E293B"/>
+              <rect x="18" y="-4" width="7" height="6" rx="1" fill="#1E293B"/>
+              <rect x="-2" y="22" width="7" height="6" rx="1" fill="#1E293B"/>
+              <rect x="18" y="22" width="7" height="6" rx="1" fill="#1E293B"/>
+              <rect x="0" y="0" width="23" height="24" rx="3" fill="#F59E0B" stroke="#B45309" stroke-width="1"/>
+              <rect x="4" y="4" width="15" height="10" rx="2" fill="#334155"/>
+              <circle cx="11" cy="9" r="3" fill="#F59E0B"/>
+              <rect x="-8" y="2" width="4" height="20" fill="#475569"/>
+              <rect x="-14" y="6" width="8" height="3" fill="#64748B"/>
+              <rect x="-14" y="15" width="8" height="3" fill="#64748B"/>
+            </g>
+          </g>
+
+          <!-- Floating Badge Card (Centered) -->
+          <g transform="translate(186, 68)" filter="url(#cardShadow)">
+            <rect x="0" y="0" width="172" height="68" rx="10" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5" style="fill: #FFFFFF !important; stroke: #E2E8F0 !important;"/>
+            <g transform="translate(12, 14)">
+              <rect x="0" y="0" width="40" height="40" rx="8" fill="#FEF3C7"/>
+              <path d="M20 32V10M20 10c-3 3-5 7-3 11M20 10c3 3 5 7 3 11M20 15c-4 2-6 5-4 8M20 15c4 2 6 5 4 8" stroke="#D97706" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="20" cy="8" r="2.5" fill="#D97706"/>
+            </g>
+            <text x="112" y="24" text-anchor="middle" font-size="13.5" font-weight="700" fill="#1E293B" style="fill: #1E293B !important;">Raw Material</text>
+            <text x="112" y="41" text-anchor="middle" font-size="13.5" font-weight="700" fill="#1E293B" style="fill: #1E293B !important;">Warehouse</text>
+            <circle cx="96" cy="56" r="4.5" fill="#16A34A" style="fill: #16A34A !important;"/>
+            <text x="106" y="59.5" font-size="11" font-weight="700" fill="#16A34A" style="fill: #16A34A !important;">Active</text>
+          </g>
+        </g>
+
+        <!-- 2. PACKAGING MATERIAL WAREHOUSE (Top Right) -->
+        <g class="zone map-zone" tabindex="0" role="button" data-name="Packaging Warehouse" data-status="Active" data-detail="Cartons, pouches, rolls, and tin containers" filter="url(#bldgShadow)">
+          <rect x="578" y="46" width="468" height="112" rx="8" fill="url(#gradPkgMat)" stroke="#0F766E" stroke-width="3" style="fill: url(#gradPkgMat) !important; stroke: #0F766E !important;"/>
+          <rect x="578" y="46" width="468" height="112" rx="8" fill="url(#roofStripeTeal)"/>
+
+          <rect x="584" y="52" width="456" height="100" rx="6" fill="#F1F5F9" stroke="#CBD5E1" stroke-width="1.5" style="fill: #F1F5F9 !important;"/>
+          <rect x="588" y="56" width="130" height="92" rx="4" fill="#E2E8F0"/>
+          <rect x="914" y="56" width="120" height="92" rx="4" fill="#E2E8F0"/>
+
+          <!-- Interior Left: Pallets with Cardboard Boxes -->
+          <g id="boxesPkgMat">
+            <rect x="596" y="66" width="46" height="34" fill="#D97706" stroke="#92400E" stroke-width="1" rx="2"/>
+            <rect x="598" y="68" width="20" height="14" rx="2" fill="#F59E0B" stroke="#B45309" stroke-width="1"/>
+            <line x1="608" y1="68" x2="608" y2="82" stroke="#78350F" stroke-width="1" stroke-dasharray="2 1"/>
+            <rect x="620" y="68" width="20" height="14" rx="2" fill="#F59E0B" stroke="#B45309" stroke-width="1"/>
+            <line x1="630" y1="68" x2="630" y2="82" stroke="#78350F" stroke-width="1" stroke-dasharray="2 1"/>
+            <rect x="598" y="84" width="20" height="14" rx="2" fill="#D97706" stroke="#B45309" stroke-width="1"/>
+            <rect x="620" y="84" width="20" height="14" rx="2" fill="#D97706" stroke="#B45309" stroke-width="1"/>
+
+            <rect x="652" y="66" width="46" height="34" fill="#D97706" stroke="#92400E" stroke-width="1" rx="2"/>
+            <rect x="654" y="68" width="20" height="14" rx="2" fill="#F59E0B" stroke="#B45309" stroke-width="1"/>
+            <rect x="676" y="68" width="20" height="14" rx="2" fill="#F59E0B" stroke="#B45309" stroke-width="1"/>
+            <rect x="654" y="84" width="20" height="14" rx="2" fill="#D97706" stroke="#B45309" stroke-width="1"/>
+            <rect x="676" y="84" width="20" height="14" rx="2" fill="#D97706" stroke="#B45309" stroke-width="1"/>
+          </g>
+
+          <!-- Interior Right: Stacks & Forklift -->
+          <g id="forkliftPkgMat">
+            <rect x="924" y="66" width="38" height="32" fill="#D97706" stroke="#92400E" stroke-width="1" rx="2"/>
+            <rect x="926" y="68" width="16" height="13" rx="2" fill="#F59E0B" stroke="#B45309" stroke-width="1"/>
+            <rect x="944" y="68" width="16" height="13" rx="2" fill="#F59E0B" stroke="#B45309" stroke-width="1"/>
+            <rect x="926" y="83" width="16" height="13" rx="2" fill="#D97706" stroke="#B45309" stroke-width="1"/>
+            <rect x="944" y="83" width="16" height="13" rx="2" fill="#D97706" stroke="#B45309" stroke-width="1"/>
+
+            <g transform="translate(980, 80)">
+              <rect x="-2" y="-4" width="7" height="6" rx="1" fill="#1E293B"/>
+              <rect x="18" y="-4" width="7" height="6" rx="1" fill="#1E293B"/>
+              <rect x="-2" y="22" width="7" height="6" rx="1" fill="#1E293B"/>
+              <rect x="18" y="22" width="7" height="6" rx="1" fill="#1E293B"/>
+              <rect x="0" y="0" width="23" height="24" rx="3" fill="#F59E0B" stroke="#B45309" stroke-width="1"/>
+              <rect x="4" y="4" width="15" height="10" rx="2" fill="#334155"/>
+              <circle cx="11" cy="9" r="3" fill="#F59E0B"/>
+              <rect x="-8" y="2" width="4" height="20" fill="#475569"/>
+              <rect x="-14" y="6" width="8" height="3" fill="#64748B"/>
+              <rect x="-14" y="15" width="8" height="3" fill="#64748B"/>
+            </g>
+          </g>
+
+          <!-- Floating Badge Card (Centered) -->
+          <g transform="translate(726, 68)" filter="url(#cardShadow)">
+            <rect x="0" y="0" width="178" height="68" rx="10" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5" style="fill: #FFFFFF !important; stroke: #E2E8F0 !important;"/>
+            <g transform="translate(10, 14)">
+              <rect x="0" y="0" width="40" height="40" rx="8" fill="#FEF3C7"/>
+              <path d="M20 8l14 8-14 8-14-8 14-8z" fill="#FCD34D" stroke="#D97706" stroke-width="1"/>
+              <path d="M6 16l14 8v12L6 28V16z" fill="#F59E0B" stroke="#D97706" stroke-width="1"/>
+              <path d="M20 24l14-8v12L20 36V24z" fill="#D97706" stroke="#B45309" stroke-width="1"/>
+              <line x1="20" y1="8" x2="20" y2="24" stroke="#B45309" stroke-width="1.2"/>
+            </g>
+            <text x="116" y="24" text-anchor="middle" font-size="12.5" font-weight="700" fill="#1E293B" style="fill: #1E293B !important;">Packaging Material</text>
+            <text x="116" y="41" text-anchor="middle" font-size="13.5" font-weight="700" fill="#1E293B" style="fill: #1E293B !important;">Warehouse</text>
+            <circle cx="100" cy="56" r="4.5" fill="#16A34A" style="fill: #16A34A !important;"/>
+            <text x="110" y="59.5" font-size="11" font-weight="700" fill="#16A34A" style="fill: #16A34A !important;">Active</text>
+          </g>
+        </g>
+
+        <!-- ========================================== -->
+        <!-- ROW 2: PRODUCTION ROW 1                    -->
+        <!-- ========================================== -->
+
+        <!-- 3. MURUKKU PRODUCTION (Row 2, Left) -->
+        <g class="zone map-zone" tabindex="0" role="button" data-name="Murukku Production" data-status="Active" data-detail="Dough kneading, extrusion shaping, and deep frying" filter="url(#bldgShadow)">
+          <rect x="54" y="182" width="316" height="104" rx="8" fill="url(#gradMurukku)" stroke="#D97706" stroke-width="3" style="fill: url(#gradMurukku) !important; stroke: #D97706 !important;"/>
+          <rect x="58" y="186" width="308" height="96" rx="6" fill="#FFFBEB" stroke="#FDE68A" stroke-width="1.5" style="fill: #FFFBEB !important;"/>
+
+          <!-- Left Machinery: Dough Kneader & Extruder -->
+          <g id="machMurukkuLeft" transform="translate(64, 192)">
+            <rect x="0" y="0" width="52" height="84" rx="4" fill="#F1F5F9" stroke="#CBD5E1" stroke-width="1"/>
+            <circle cx="26" cy="24" r="16" fill="#E2E8F0" stroke="#94A3B8" stroke-width="2"/>
+            <circle cx="26" cy="24" r="6" fill="#D97706"/>
+            <rect x="10" y="46" width="32" height="14" rx="2" fill="#CBD5E1" stroke="#64748B" stroke-width="1"/>
+            <line x1="14" y1="66" x2="38" y2="66" stroke="#475569" stroke-width="3"/>
+            <circle cx="18" cy="74" r="4" fill="#F59E0B"/>
+            <circle cx="34" cy="74" r="4" fill="#F59E0B"/>
+          </g>
+
+          <!-- Right Machinery: Continuous Fryer & Cooling Belt -->
+          <g id="machMurukkuRight" transform="translate(254, 192)">
+            <rect x="0" y="0" width="104" height="84" rx="4" fill="#F1F5F9" stroke="#CBD5E1" stroke-width="1"/>
+            <rect x="8" y="10" width="40" height="64" rx="3" fill="#FEF3C7" stroke="#F59E0B" stroke-width="2"/>
+            <ellipse cx="28" cy="26" rx="14" ry="8" fill="#FDE68A"/>
+            <ellipse cx="28" cy="46" rx="14" ry="8" fill="#FDE68A"/>
+            <rect x="54" y="10" width="42" height="64" rx="2" fill="#E2E8F0" stroke="#94A3B8" stroke-width="1"/>
+            <circle cx="68" cy="22" r="6" fill="none" stroke="#D97706" stroke-width="2"/>
+            <circle cx="82" cy="38" r="6" fill="none" stroke="#D97706" stroke-width="2"/>
+            <circle cx="68" cy="54" r="6" fill="none" stroke="#D97706" stroke-width="2"/>
+          </g>
+
+          <!-- Floating Badge Card -->
+          <g transform="translate(122, 200)" filter="url(#cardShadow)">
+            <rect x="0" y="0" width="172" height="68" rx="10" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5" style="fill: #FFFFFF !important; stroke: #E2E8F0 !important;"/>
+            <g transform="translate(12, 14)">
+              <rect x="0" y="0" width="40" height="40" rx="8" fill="#FEF3C7"/>
+              <circle cx="20" cy="20" r="14" fill="none" stroke="#F59E0B" stroke-width="2.5" stroke-dasharray="3 1"/>
+              <circle cx="20" cy="20" r="9" fill="none" stroke="#D97706" stroke-width="2.5" stroke-dasharray="3 1"/>
+              <circle cx="20" cy="20" r="4" fill="#B45309"/>
+            </g>
+            <text x="112" y="24" text-anchor="middle" font-size="14" font-weight="700" fill="#1E293B" style="fill: #1E293B !important;">Murukku</text>
+            <text x="112" y="41" text-anchor="middle" font-size="14" font-weight="700" fill="#1E293B" style="fill: #1E293B !important;">Production</text>
+            <circle cx="96" cy="56" r="4.5" fill="#16A34A" style="fill: #16A34A !important;"/>
+            <text x="106" y="59.5" font-size="11" font-weight="700" fill="#16A34A" style="fill: #16A34A !important;">Active</text>
+          </g>
+        </g>
+
+        <!-- 4. POTATO CHIPS PRODUCTION (Row 2, Center) -->
+        <g class="zone map-zone" tabindex="0" role="button" data-name="Potato Chips Production" data-status="Active" data-detail="Potato peeling, rotary slicing, and batch frying" filter="url(#bldgShadow)">
+          <rect x="390" y="182" width="320" height="104" rx="8" fill="url(#gradPotato)" stroke="#65A30D" stroke-width="3" style="fill: url(#gradPotato) !important; stroke: #65A30D !important;"/>
+          <rect x="394" y="186" width="312" height="96" rx="6" fill="#F7FEE7" stroke="#D9F99D" stroke-width="1.5" style="fill: #F7FEE7 !important;"/>
+
+          <!-- Left Machinery: Peeler & Rotary Slicer -->
+          <g id="machPotatoLeft" transform="translate(400, 192)">
+            <rect x="0" y="0" width="52" height="84" rx="4" fill="#F1F5F9" stroke="#CBD5E1" stroke-width="1"/>
+            <rect x="8" y="10" width="36" height="28" rx="3" fill="#E2E8F0" stroke="#84CC16" stroke-width="1.5"/>
+            <circle cx="26" cy="24" r="8" fill="#A3E635"/>
+            <path d="M14 46h24l-6 28H20z" fill="#CBD5E1" stroke="#64748B" stroke-width="1"/>
+          </g>
+
+          <!-- Right Machinery: Frying Tunnel & Seasoner -->
+          <g id="machPotatoRight" transform="translate(594, 192)">
+            <rect x="0" y="0" width="104" height="84" rx="4" fill="#F1F5F9" stroke="#CBD5E1" stroke-width="1"/>
+            <rect x="8" y="10" width="44" height="64" rx="3" fill="#FEF08A" stroke="#EAB308" stroke-width="1.5"/>
+            <circle cx="30" cy="28" r="8" fill="#FDE047"/>
+            <circle cx="30" cy="52" r="8" fill="#FDE047"/>
+            <rect x="58" y="14" width="38" height="56" rx="8" fill="#E2E8F0" stroke="#94A3B8" stroke-width="1.5"/>
+            <ellipse cx="77" cy="42" rx="12" ry="6" fill="#FACC15"/>
+          </g>
+
+          <!-- Floating Badge Card -->
+          <g transform="translate(460, 200)" filter="url(#cardShadow)">
+            <rect x="0" y="0" width="180" height="68" rx="10" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5" style="fill: #FFFFFF !important; stroke: #E2E8F0 !important;"/>
+            <g transform="translate(12, 14)">
+              <rect x="0" y="0" width="40" height="40" rx="8" fill="#FEF9C3"/>
+              <ellipse cx="18" cy="18" rx="11" ry="7" fill="#FACC15" stroke="#EAB308" stroke-width="1.2" transform="rotate(-15 18 18)"/>
+              <ellipse cx="24" cy="25" rx="11" ry="7" fill="#EAB308" stroke="#CA8A04" stroke-width="1.2" transform="rotate(10 24 25)"/>
+            </g>
+            <text x="116" y="24" text-anchor="middle" font-size="14" font-weight="700" fill="#1E293B" style="fill: #1E293B !important;">Potato Chips</text>
+            <text x="116" y="41" text-anchor="middle" font-size="14" font-weight="700" fill="#1E293B" style="fill: #1E293B !important;">Production</text>
+            <circle cx="100" cy="56" r="4.5" fill="#16A34A" style="fill: #16A34A !important;"/>
+            <text x="110" y="59.5" font-size="11" font-weight="700" fill="#16A34A" style="fill: #16A34A !important;">Active</text>
+          </g>
+        </g>
+
+        <!-- 5. BANANA CHIPS PRODUCTION (Row 2, Right) -->
+        <g class="zone map-zone" tabindex="0" role="button" data-name="Banana Chips Production" data-status="Active" data-detail="Raw banana peeling, disc slicing, and coconut oil frying" filter="url(#bldgShadow)">
+          <rect x="730" y="182" width="316" height="104" rx="8" fill="url(#gradBanana)" stroke="#7E22CE" stroke-width="3" style="fill: url(#gradBanana) !important; stroke: #7E22CE !important;"/>
+          <rect x="734" y="186" width="308" height="96" rx="6" fill="#FAF5FF" stroke="#E9D5FF" stroke-width="1.5" style="fill: #FAF5FF !important;"/>
+
+          <!-- Left Machinery -->
+          <g id="machBananaLeft" transform="translate(740, 192)">
+            <rect x="0" y="0" width="52" height="84" rx="4" fill="#F1F5F9" stroke="#CBD5E1" stroke-width="1"/>
+            <rect x="8" y="12" width="36" height="24" rx="2" fill="#E2E8F0" stroke="#A855F7" stroke-width="1.5"/>
+            <line x1="12" y1="52" x2="40" y2="52" stroke="#7E22CE" stroke-width="3"/>
+            <circle cx="26" cy="66" r="6" fill="#FDE047"/>
+          </g>
+
+          <!-- Right Machinery -->
+          <g id="machBananaRight" transform="translate(930, 192)">
+            <rect x="0" y="0" width="104" height="84" rx="4" fill="#F1F5F9" stroke="#CBD5E1" stroke-width="1"/>
+            <rect x="8" y="10" width="44" height="64" rx="3" fill="#FEF08A" stroke="#CA8A04" stroke-width="1.5"/>
+            <circle cx="24" cy="28" r="6" fill="#FACC15" stroke="#A16207" stroke-width="1"/>
+            <circle cx="36" cy="48" r="6" fill="#FACC15" stroke="#A16207" stroke-width="1"/>
+            <rect x="58" y="12" width="38" height="60" rx="2" fill="#E2E8F0" stroke="#94A3B8" stroke-width="1"/>
+          </g>
+
+          <!-- Floating Badge Card -->
+          <g transform="translate(800, 200)" filter="url(#cardShadow)">
+            <rect x="0" y="0" width="176" height="68" rx="10" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5" style="fill: #FFFFFF !important; stroke: #E2E8F0 !important;"/>
+            <g transform="translate(12, 14)">
+              <rect x="0" y="0" width="40" height="40" rx="8" fill="#F3E8FF"/>
+              <circle cx="16" cy="18" r="8" fill="#FDE047" stroke="#CA8A04" stroke-width="1.5"/>
+              <circle cx="16" cy="18" r="2" fill="#854D0E"/>
+              <circle cx="26" cy="25" r="8" fill="#FDE047" stroke="#CA8A04" stroke-width="1.5"/>
+              <circle cx="26" cy="25" r="2" fill="#854D0E"/>
+            </g>
+            <text x="114" y="24" text-anchor="middle" font-size="14" font-weight="700" fill="#1E293B" style="fill: #1E293B !important;">Banana Chips</text>
+            <text x="114" y="41" text-anchor="middle" font-size="14" font-weight="700" fill="#1E293B" style="fill: #1E293B !important;">Production</text>
+            <circle cx="98" cy="56" r="4.5" fill="#16A34A" style="fill: #16A34A !important;"/>
+            <text x="108" y="59.5" font-size="11" font-weight="700" fill="#16A34A" style="fill: #16A34A !important;">Active</text>
+          </g>
+        </g>
+
+        <!-- ========================================== -->
+        <!-- ROW 3: PRODUCTION ROW 2 & QUALITY          -->
+        <!-- ========================================== -->
+
+        <!-- 6. MIXTURE PRODUCTION (Row 3, Left) -->
+        <g class="zone map-zone" tabindex="0" role="button" data-name="Mixture Production" data-status="Active" data-detail="Sev, boondi, fried peanuts, and spice blending" filter="url(#bldgShadow)">
+          <rect x="54" y="308" width="316" height="104" rx="8" fill="url(#gradMixture)" stroke="#E11D48" stroke-width="3" style="fill: url(#gradMixture) !important; stroke: #E11D48 !important;"/>
+          <rect x="58" y="312" width="308" height="96" rx="6" fill="#FFF1F2" stroke="#FDA4AF" stroke-width="1.5" style="fill: #FFF1F2 !important;"/>
+
+          <!-- Left Machinery: Multi-hopper extrusion -->
+          <g id="machMixtureLeft" transform="translate(64, 318)">
+            <rect x="0" y="0" width="52" height="84" rx="4" fill="#F1F5F9" stroke="#CBD5E1" stroke-width="1"/>
+            <circle cx="18" cy="22" r="10" fill="#FB7185"/>
+            <circle cx="34" cy="22" r="10" fill="#F43F5E"/>
+            <rect x="10" y="42" width="32" height="32" rx="3" fill="#E2E8F0" stroke="#94A3B8" stroke-width="1"/>
+            <line x1="16" y1="52" x2="36" y2="52" stroke="#E11D48" stroke-width="2"/>
+          </g>
+
+          <!-- Right Machinery: Blending Drum & Fryer -->
+          <g id="machMixtureRight" transform="translate(254, 318)">
+            <rect x="0" y="0" width="104" height="84" rx="4" fill="#F1F5F9" stroke="#CBD5E1" stroke-width="1"/>
+            <rect x="8" y="10" width="44" height="64" rx="3" fill="#FEE2E2" stroke="#EF4444" stroke-width="1.5"/>
+            <rect x="58" y="14" width="38" height="56" rx="6" fill="#E2E8F0" stroke="#94A3B8" stroke-width="1.5"/>
+            <circle cx="77" cy="42" r="10" fill="#EA580C"/>
+          </g>
+
+          <!-- Floating Badge Card -->
+          <g transform="translate(122, 326)" filter="url(#cardShadow)">
+            <rect x="0" y="0" width="172" height="68" rx="10" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5" style="fill: #FFFFFF !important; stroke: #E2E8F0 !important;"/>
+            <g transform="translate(12, 14)">
+              <rect x="0" y="0" width="40" height="40" rx="8" fill="#FFE4E6"/>
+              <path d="M8 20c0 8 5 14 12 14s12-6 12-14H8z" fill="#EA580C" stroke="#C2410C" stroke-width="1"/>
+              <circle cx="16" cy="16" r="3" fill="#FACC15"/>
+              <circle cx="22" cy="15" r="2.5" fill="#DC2626"/>
+              <circle cx="26" cy="18" r="3" fill="#F59E0B"/>
+            </g>
+            <text x="112" y="24" text-anchor="middle" font-size="14" font-weight="700" fill="#1E293B" style="fill: #1E293B !important;">Mixture</text>
+            <text x="112" y="41" text-anchor="middle" font-size="14" font-weight="700" fill="#1E293B" style="fill: #1E293B !important;">Production</text>
+            <circle cx="96" cy="56" r="4.5" fill="#16A34A" style="fill: #16A34A !important;"/>
+            <text x="106" y="59.5" font-size="11" font-weight="700" fill="#16A34A" style="fill: #16A34A !important;">Active</text>
+          </g>
+        </g>
+
+        <!-- 7. MYSORE PAK PRODUCTION (Row 3, Center) -->
+        <g class="zone map-zone" tabindex="0" role="button" data-name="Mysore Pak Production" data-status="Active" data-detail="Besan, ghee cooking, tray cooling, and guillotine cubing" filter="url(#bldgShadow)">
+          <rect x="390" y="308" width="320" height="104" rx="8" fill="url(#gradMysore)" stroke="#0E7490" stroke-width="3" style="fill: url(#gradMysore) !important; stroke: #0E7490 !important;"/>
+          <rect x="394" y="312" width="312" height="96" rx="6" fill="#ECFEFF" stroke="#A5F3FC" stroke-width="1.5" style="fill: #ECFEFF !important;"/>
+
+          <!-- Left Machinery: Cooking Urulis -->
+          <g id="machMysoreLeft" transform="translate(400, 318)">
+            <rect x="0" y="0" width="52" height="84" rx="4" fill="#F1F5F9" stroke="#CBD5E1" stroke-width="1"/>
+            <circle cx="26" cy="26" r="16" fill="#D97706" stroke="#B45309" stroke-width="2"/>
+            <circle cx="26" cy="26" r="8" fill="#F59E0B"/>
+            <rect x="10" y="52" width="32" height="22" rx="2" fill="#CBD5E1" stroke="#64748B" stroke-width="1"/>
+          </g>
+
+          <!-- Right Machinery: Setting Trays & Cutter -->
+          <g id="machMysoreRight" transform="translate(594, 318)">
+            <rect x="0" y="0" width="104" height="84" rx="4" fill="#F1F5F9" stroke="#CBD5E1" stroke-width="1"/>
+            <rect x="8" y="10" width="44" height="64" rx="2" fill="#FEF3C7" stroke="#D97706" stroke-width="1.5"/>
+            <line x1="8" y1="26" x2="52" y2="26" stroke="#B45309" stroke-width="1"/>
+            <line x1="8" y1="42" x2="52" y2="42" stroke="#B45309" stroke-width="1"/>
+            <line x1="8" y1="58" x2="52" y2="58" stroke="#B45309" stroke-width="1"/>
+            <line x1="22" y1="10" x2="22" y2="74" stroke="#B45309" stroke-width="1"/>
+            <line x1="38" y1="10" x2="38" y2="74" stroke="#B45309" stroke-width="1"/>
+            <rect x="60" y="16" width="36" height="52" rx="2" fill="#E2E8F0" stroke="#94A3B8" stroke-width="1.5"/>
+          </g>
+
+          <!-- Floating Badge Card -->
+          <g transform="translate(460, 326)" filter="url(#cardShadow)">
+            <rect x="0" y="0" width="180" height="68" rx="10" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5" style="fill: #FFFFFF !important; stroke: #E2E8F0 !important;"/>
+            <g transform="translate(12, 14)">
+              <rect x="0" y="0" width="40" height="40" rx="8" fill="#CFFAFE"/>
+              <rect x="8" y="18" width="14" height="12" rx="1" fill="#F59E0B" stroke="#B45309" stroke-width="1"/>
+              <rect x="22" y="18" width="14" height="12" rx="1" fill="#D97706" stroke="#92400E" stroke-width="1"/>
+              <rect x="15" y="8" width="14" height="12" rx="1" fill="#FBBF24" stroke="#B45309" stroke-width="1"/>
+            </g>
+            <text x="116" y="24" text-anchor="middle" font-size="14" font-weight="700" fill="#1E293B" style="fill: #1E293B !important;">Mysore Pak</text>
+            <text x="116" y="41" text-anchor="middle" font-size="14" font-weight="700" fill="#1E293B" style="fill: #1E293B !important;">Production</text>
+            <circle cx="100" cy="56" r="4.5" fill="#16A34A" style="fill: #16A34A !important;"/>
+            <text x="110" y="59.5" font-size="11" font-weight="700" fill="#16A34A" style="fill: #16A34A !important;">Active</text>
+          </g>
+        </g>
+
+        <!-- 8. QUALITY CONTROL (Row 3, Right) -->
+        <g class="zone map-zone" tabindex="0" role="button" data-name="Quality Control" data-status="Active" data-detail="Raw ingredient testing, moisture analysis, and final release" filter="url(#bldgShadow)">
+          <rect x="730" y="308" width="316" height="104" rx="8" fill="url(#gradQuality)" stroke="#0369A1" stroke-width="3" style="fill: url(#gradQuality) !important; stroke: #0369A1 !important;"/>
+          <rect x="734" y="312" width="308" height="96" rx="6" fill="#F0F9FF" stroke="#BAE6FD" stroke-width="1.5" style="fill: #F0F9FF !important;"/>
+
+          <!-- Left Equipment: Workbenches -->
+          <g id="machQCLeft" transform="translate(740, 318)">
+            <rect x="0" y="0" width="52" height="84" rx="4" fill="#F1F5F9" stroke="#CBD5E1" stroke-width="1"/>
+            <rect x="8" y="12" width="36" height="22" rx="2" fill="#E2E8F0" stroke="#38BDF8" stroke-width="1.5"/>
+            <circle cx="26" cy="58" r="8" fill="#38BDF8"/>
+            <line x1="26" y1="50" x2="26" y2="66" stroke="#0369A1" stroke-width="2"/>
+          </g>
+
+          <!-- Right Equipment: Testing Stations -->
+          <g id="machQCRight" transform="translate(930, 318)">
+            <rect x="0" y="0" width="104" height="84" rx="4" fill="#F1F5F9" stroke="#CBD5E1" stroke-width="1"/>
+            <rect x="8" y="10" width="44" height="64" rx="2" fill="#E0F2FE" stroke="#0284C7" stroke-width="1"/>
+            <rect x="14" y="20" width="4" height="24" rx="2" fill="#38BDF8"/>
+            <rect x="22" y="20" width="4" height="24" rx="2" fill="#4ADE80"/>
+            <rect x="30" y="20" width="4" height="24" rx="2" fill="#FACC15"/>
+            <rect x="38" y="20" width="4" height="24" rx="2" fill="#FB7185"/>
+            <rect x="60" y="16" width="36" height="28" rx="2" fill="#1E293B"/>
+            <rect x="63" y="19" width="30" height="22" fill="#0284C7"/>
+          </g>
+
+          <!-- Floating Badge Card -->
+          <g transform="translate(800, 326)" filter="url(#cardShadow)">
+            <rect x="0" y="0" width="176" height="68" rx="10" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5" style="fill: #FFFFFF !important; stroke: #E2E8F0 !important;"/>
+            <g transform="translate(12, 14)">
+              <rect x="0" y="0" width="40" height="40" rx="8" fill="#E0F2FE"/>
+              <path d="M17 10h6M20 10v6l8 14H12l8-14v-6" fill="none" stroke="#0284C7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M14 26l3-5 5 1 4 4H14z" fill="#38BDF8"/>
+              <circle cx="19" cy="24" r="1.5" fill="#FFFFFF"/>
+              <circle cx="22" cy="27" r="1" fill="#FFFFFF"/>
+            </g>
+            <text x="114" y="33" text-anchor="middle" font-size="14.5" font-weight="700" fill="#1E293B" style="fill: #1E293B !important;">Quality Control</text>
+            <circle cx="98" cy="54" r="4.5" fill="#16A34A" style="fill: #16A34A !important;"/>
+            <text x="108" y="57.5" font-size="11" font-weight="700" fill="#16A34A" style="fill: #16A34A !important;">Active</text>
+          </g>
+        </g>
+
+        <!-- ========================================== -->
+        <!-- ROW 4: FINISHED GOODS, DISPATCH, ADMIN     -->
+        <!-- ========================================== -->
+
+        <!-- 9. FINISHED GOODS WAREHOUSE (Row 4, Left) -->
+        <g class="zone map-zone" tabindex="0" role="button" data-name="Finished Goods Warehouse" data-status="Active" data-detail="Storage and consolidation of packaged snack cartons" filter="url(#bldgShadow)">
+          <rect x="54" y="434" width="416" height="114" rx="8" fill="url(#gradFinished)" stroke="#047857" stroke-width="3" style="fill: url(#gradFinished) !important; stroke: #047857 !important;"/>
+          <rect x="54" y="434" width="416" height="114" rx="8" fill="url(#roofStripeGreen)"/>
+          
+          <rect x="60" y="440" width="404" height="102" rx="6" fill="#F0FDF4" stroke="#A7F3D0" stroke-width="1.5" style="fill: #F0FDF4 !important;"/>
+
+          <!-- Interior Racks Left -->
+          <g id="fgRacksLeft" transform="translate(66, 446)">
+            <rect x="0" y="0" width="112" height="90" rx="3" fill="#E2E8F0" stroke="#CBD5E1" stroke-width="1"/>
+            <rect x="6" y="8" width="100" height="34" rx="2" fill="#1E40AF" stroke="#1D4ED8" stroke-width="1"/>
+            <rect x="8" y="10" width="20" height="30" rx="2" fill="#D97706"/>
+            <rect x="32" y="10" width="20" height="30" rx="2" fill="#D97706"/>
+            <rect x="56" y="10" width="20" height="30" rx="2" fill="#D97706"/>
+            <rect x="80" y="10" width="20" height="30" rx="2" fill="#D97706"/>
+            <rect x="6" y="48" width="100" height="34" rx="2" fill="#1E40AF" stroke="#1D4ED8" stroke-width="1"/>
+            <rect x="8" y="50" width="20" height="30" rx="2" fill="#F59E0B"/>
+            <rect x="32" y="50" width="20" height="30" rx="2" fill="#F59E0B"/>
+            <rect x="56" y="50" width="20" height="30" rx="2" fill="#F59E0B"/>
+            <rect x="80" y="50" width="20" height="30" rx="2" fill="#F59E0B"/>
+          </g>
+
+          <!-- Interior Stacks Right -->
+          <g id="fgRacksRight" transform="translate(352, 446)">
+            <rect x="0" y="0" width="104" height="90" rx="3" fill="#E2E8F0" stroke="#CBD5E1" stroke-width="1"/>
+            <rect x="8" y="10" width="40" height="32" fill="#D97706" rx="2"/>
+            <rect x="52" y="10" width="40" height="32" fill="#F59E0B" rx="2"/>
+            <rect x="8" y="46" width="40" height="32" fill="#F59E0B" rx="2"/>
+            <rect x="52" y="46" width="40" height="32" fill="#D97706" rx="2"/>
+          </g>
+
+          <!-- Floating Badge Card -->
+          <g transform="translate(196, 456)" filter="url(#cardShadow)">
+            <rect x="0" y="0" width="178" height="68" rx="10" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5" style="fill: #FFFFFF !important; stroke: #E2E8F0 !important;"/>
+            <g transform="translate(12, 14)">
+              <rect x="0" y="0" width="40" height="40" rx="8" fill="#DCFCE7"/>
+              <rect x="6" y="18" width="14" height="14" rx="2" fill="#D97706" stroke="#B45309" stroke-width="1"/>
+              <rect x="20" y="18" width="14" height="14" rx="2" fill="#F59E0B" stroke="#B45309" stroke-width="1"/>
+              <rect x="13" y="8" width="14" height="14" rx="2" fill="#FBBF24" stroke="#D97706" stroke-width="1"/>
+            </g>
+            <text x="116" y="24" text-anchor="middle" font-size="13.5" font-weight="700" fill="#1E293B" style="fill: #1E293B !important;">Finished Goods</text>
+            <text x="116" y="41" text-anchor="middle" font-size="13.5" font-weight="700" fill="#1E293B" style="fill: #1E293B !important;">Warehouse</text>
+            <circle cx="100" cy="56" r="4.5" fill="#16A34A" style="fill: #16A34A !important;"/>
+            <text x="110" y="59.5" font-size="11" font-weight="700" fill="#16A34A" style="fill: #16A34A !important;">Active</text>
+          </g>
+        </g>
+
+        <!-- Central Avenue with Delivery Truck Driving Out -->
+        <g id="centralAvenueTruck">
+          <g transform="translate(534, 500)" filter="url(#cardShadow)">
+            <rect x="-18" y="-34" width="36" height="74" rx="6" fill="rgba(0,0,0,0.24)"/>
+            <rect x="-15" y="-32" width="30" height="46" rx="3" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5"/>
+            <line x1="-15" y1="-20" x2="15" y2="-20" stroke="#F59E0B" stroke-width="3"/>
+            <line x1="-15" y1="-6" x2="15" y2="-6" stroke="#E2E8F0" stroke-width="1"/>
+            <line x1="0" y1="12" x2="0" y2="14" stroke="#334155" stroke-width="2"/>
+            
+            <!-- Truck Cab (Yellow) -->
+            <rect x="-14" y="14" width="28" height="22" rx="4" fill="#F59E0B" stroke="#D97706" stroke-width="1.5"/>
+            <rect x="-11" y="18" width="22" height="8" rx="2" fill="#1E293B"/>
+            <rect x="-10" y="28" width="20" height="7" rx="2" fill="#D97706"/>
+            <circle cx="-8" cy="34" r="2" fill="#FEF08A"/>
+            <circle cx="8" cy="34" r="2" fill="#FEF08A"/>
+            <rect x="-18" y="20" width="4" height="3" fill="#F59E0B"/>
+            <rect x="14" y="20" width="4" height="3" fill="#F59E0B"/>
+          </g>
+        </g>
+
+        <!-- 10. DISPATCH SECTION (Row 4, Center-Right) -->
+        <g class="zone map-zone" tabindex="0" role="button" data-name="Dispatch" data-status="Active" data-detail="Order packing, vehicle docking, and invoice tagging" filter="url(#bldgShadow)">
+          <rect x="570" y="434" width="214" height="114" rx="8" fill="url(#gradDispatch)" stroke="#6D28D9" stroke-width="3" style="fill: url(#gradDispatch) !important; stroke: #6D28D9 !important;"/>
+          <rect x="574" y="440" width="206" height="102" rx="6" fill="#FAF5FF" stroke="#DDD6FE" stroke-width="1.5" style="fill: #FAF5FF !important;"/>
+
+          <!-- Loading Dock Conveyor & Bays -->
+          <g id="dispatchBays" transform="translate(580, 446)">
+            <rect x="0" y="0" width="44" height="90" rx="3" fill="#F1F5F9" stroke="#CBD5E1" stroke-width="1"/>
+            <line x1="6" y1="14" x2="38" y2="14" stroke="#8B5CF6" stroke-width="2"/>
+            <line x1="6" y1="26" x2="38" y2="26" stroke="#8B5CF6" stroke-width="2"/>
+            <line x1="6" y1="38" x2="38" y2="38" stroke="#8B5CF6" stroke-width="2"/>
+            <line x1="6" y1="50" x2="38" y2="50" stroke="#8B5CF6" stroke-width="2"/>
+            <line x1="6" y1="62" x2="38" y2="62" stroke="#8B5CF6" stroke-width="2"/>
+            <line x1="6" y1="74" x2="38" y2="74" stroke="#8B5CF6" stroke-width="2"/>
+          </g>
+
+          <!-- Floating Badge Card -->
+          <g transform="translate(594, 456)" filter="url(#cardShadow)">
+            <rect x="0" y="0" width="170" height="68" rx="10" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5" style="fill: #FFFFFF !important; stroke: #E2E8F0 !important;"/>
+            <g transform="translate(10, 14)">
+              <rect x="0" y="0" width="40" height="40" rx="8" fill="#EDE9FE"/>
+              <rect x="6" y="16" width="18" height="12" fill="#F59E0B" stroke="#D97706" stroke-width="1" rx="1"/>
+              <path d="M24 20h6l4 4v4h-10v-8z" fill="#D97706"/>
+              <circle cx="12" cy="30" r="3.5" fill="#1E293B"/>
+              <circle cx="28" cy="30" r="3.5" fill="#1E293B"/>
+            </g>
+            <text x="112" y="33" text-anchor="middle" font-size="14" font-weight="700" fill="#1E293B" style="fill: #1E293B !important;">Dispatch Section</text>
+            <circle cx="96" cy="54" r="4.5" fill="#16A34A" style="fill: #16A34A !important;"/>
+            <text x="106" y="57.5" font-size="11" font-weight="700" fill="#16A34A" style="fill: #16A34A !important;">Active</text>
+          </g>
+        </g>
+
+        <!-- 11. OFFICE & ADMINISTRATION (Row 4, Far-Right) -->
+        <g class="zone map-zone" tabindex="0" role="button" data-name="Administration" data-status="Active" data-detail="Plant operations, accounts, HR, and regulatory management" filter="url(#bldgShadow)">
+          <rect x="804" y="434" width="242" height="114" rx="8" fill="url(#gradAdmin)" stroke="#475569" stroke-width="3" style="fill: url(#gradAdmin) !important; stroke: #475569 !important;"/>
+          <rect x="808" y="440" width="234" height="102" rx="6" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" style="fill: #F8FAFC !important;"/>
+
+          <!-- Interior Office Desks & Workstations -->
+          <g id="adminDesks" transform="translate(814, 446)">
+            <rect x="6" y="10" width="24" height="16" rx="2" fill="#E2E8F0" stroke="#94A3B8" stroke-width="1"/>
+            <rect x="10" y="12" width="16" height="3" fill="#3B82F6"/>
+            <circle cx="18" cy="30" r="4" fill="#64748B"/>
+
+            <rect x="6" y="46" width="24" height="16" rx="2" fill="#E2E8F0" stroke="#94A3B8" stroke-width="1"/>
+            <rect x="10" y="48" width="16" height="3" fill="#3B82F6"/>
+            <circle cx="18" cy="66" r="4" fill="#64748B"/>
+
+            <rect x="180" y="20" width="44" height="52" rx="10" fill="#E2E8F0" stroke="#94A3B8" stroke-width="1.5"/>
+            <circle cx="172" cy="32" r="3.5" fill="#64748B"/>
+            <circle cx="172" cy="58" r="3.5" fill="#64748B"/>
+            <circle cx="232" cy="32" r="3.5" fill="#64748B"/>
+            <circle cx="232" cy="58" r="3.5" fill="#64748B"/>
+          </g>
+
+          <!-- Floating Badge Card -->
+          <g transform="translate(830, 456)" filter="url(#cardShadow)">
+            <rect x="0" y="0" width="194" height="68" rx="10" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5" style="fill: #FFFFFF !important; stroke: #E2E8F0 !important;"/>
+            <g transform="translate(10, 14)">
+              <rect x="0" y="0" width="40" height="40" rx="8" fill="#EFF6FF"/>
+              <circle cx="20" cy="14" r="5" fill="#3B82F6"/>
+              <path d="M10 30c0-5.5 4.5-9 10-9s10 3.5 10 9H10z" fill="#3B82F6"/>
+              <circle cx="12" cy="16" r="3.5" fill="#60A5FA"/>
+              <circle cx="28" cy="16" r="3.5" fill="#60A5FA"/>
+            </g>
+            <text x="124" y="33" text-anchor="middle" font-size="12.5" font-weight="700" fill="#1E293B" style="fill: #1E293B !important;">Office &amp; Administration</text>
+            <circle cx="108" cy="54" r="4.5" fill="#16A34A" style="fill: #16A34A !important;"/>
+            <text x="118" y="57.5" font-size="11" font-weight="700" fill="#16A34A" style="fill: #16A34A !important;">Active</text>
+          </g>
+        </g>
+      </svg>
+    </div>
+
+    <!-- Interactive Selected Department Bar with Location Voice Recording -->
+    <div class="selected-dept-bar" id="selectedDeptBar">
+      <div class="d-flex align-items-center gap-2 flex-wrap">
+        <span class="badge bg-primary" id="selectedDeptBadge">Selected Location</span>
+        <strong id="activeDeptName" class="fs-6 text-dark">Murukku Production</strong>
+        <span class="badge bg-success" id="activeDeptStatus">Active</span>
+        <span class="text-muted small ms-2" id="activeDeptDetails">Batch 1: 188 Packets Produced • 10 Labours on duty</span>
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <a class="btn btn-sm btn-primary shadow-sm" id="btnRecordLocationVoice" href="{{ url_for('voice.record', department_id=1, location_id=1) }}">
+          🎙️ Record Tamil Voice Note
+        </a>
+        <a class="btn btn-sm btn-outline-secondary" id="btnViewDeptDetails" href="{{ url_for('modules.department_detail', department_id=1) }}">
+          📋 Department Details
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Factory Information Aside Card (Right Panel) -->
+  <aside class="factory-info reference-info" style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 14px rgba(0,0,0,0.05); padding: 0;">
+    <!-- Blue Header Banner -->
+    <div style="background: #172554; color: #FFFFFF; padding: 12px 16px; display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 14.5px;">
+      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path d="M3 21h18M3 7v14M21 7v14M7 21V11M11 21v-6M15 21v-8M7 7l4-4 4 4"/>
+      </svg>
+      <span>Factory Information</span>
+    </div>
+
+    <div style="padding: 16px;">
+      <div style="margin-bottom: 12px;">
+        <small style="color: #64748B; font-size: 11px; text-transform: uppercase; font-weight: 600; display: block; letter-spacing: 0.03em;">Factory Name</small>
+        <strong id="factoryInfoName" style="color: #1E293B; font-size: 14px; font-weight: 700; display: block; margin-top: 3px; line-height: 1.3;">Smart Food Manufacturing Factory</strong>
+      </div>
+
+      <div style="margin-bottom: 12px;">
+        <small style="color: #64748B; font-size: 11px; text-transform: uppercase; font-weight: 600; display: block; letter-spacing: 0.03em;">Business Type</small>
+        <span style="color: #334155; font-size: 13px; font-weight: 600; display: block; margin-top: 3px;">South Indian Snacks Manufacturing</span>
+      </div>
+
+      <div style="margin-bottom: 16px;">
+        <small style="color: #64748B; font-size: 11px; text-transform: uppercase; font-weight: 600; display: block; letter-spacing: 0.03em;">Factory Location</small>
+        <span style="color: #0D9488; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 4px; margin-top: 3px;">
+          📍 Tamilnadu, India
+        </span>
+      </div>
+
+      <div style="margin-top: 14px; border-top: 1px solid #F1F5F9; padding-top: 14px;">
+        <h3 style="font-size: 13.5px; font-weight: 700; color: #1E293B; margin-bottom: 10px;">Departments Summary</h3>
+        <div style="display: flex; flex-direction: column; gap: 7px; font-size: 12.5px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="display: flex; align-items: center; gap: 8px; color: #475569;">
+              <span style="width: 9px; height: 9px; border-radius: 50%; background: #F97316; display: inline-block;"></span>
+              Production Sections
+            </span>
+            <strong style="color: #1E293B;">{{ summary.production }}</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="display: flex; align-items: center; gap: 8px; color: #475569;">
+              <span style="width: 9px; height: 9px; border-radius: 50%; background: #22C55E; display: inline-block;"></span>
+              Warehouses
+            </span>
+            <strong style="color: #1E293B;">{{ summary.warehouses }}</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="display: flex; align-items: center; gap: 8px; color: #475569;">
+              <span style="width: 9px; height: 9px; border-radius: 50%; background: #A855F7; display: inline-block;"></span>
+              Quality Control
+            </span>
+            <strong style="color: #1E293B;">1</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="display: flex; align-items: center; gap: 8px; color: #475569;">
+              <span style="width: 9px; height: 9px; border-radius: 50%; background: #06B6D4; display: inline-block;"></span>
+              Dispatch
+            </span>
+            <strong style="color: #1E293B;">1</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="display: flex; align-items: center; gap: 8px; color: #475569;">
+              <span style="width: 9px; height: 9px; border-radius: 50%; background: #EC4899; display: inline-block;"></span>
+              Administration
+            </span>
+            <strong style="color: #1E293B;">1</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Actions Section -->
+    <div>
+      <div style="background: #172554; color: #FFFFFF; padding: 10px 16px; font-weight: 700; font-size: 13.5px; display: flex; align-items: center; gap: 8px;">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M13 10V3L4 14h7v7l9-11h-7z"/>
+        </svg>
+        <span>Quick Actions</span>
+      </div>
+      <div style="padding: 12px 16px; display: flex; flex-direction: column; gap: 8px; background: #F8FAFC;">
+        <a href="{{ url_for('voice.record') }}" style="display: flex; align-items: center; gap: 8px; padding: 7px 10px; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 6px; color: #1E40AF; font-size: 12px; font-weight: 600; text-decoration: none;">
+          🎙️ Record Tamil Voice
+        </a>
+        <a href="{{ url_for('modules.factory_layout') }}" style="display: flex; align-items: center; gap: 8px; padding: 7px 10px; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 6px; color: #1E40AF; font-size: 12px; font-weight: 600; text-decoration: none;">
+          <svg width="15" height="15" fill="none" stroke="#2563EB" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          View All Departments
+        </a>
+        {% if 'OWNER' in session.roles %}
+        <a href="{{ url_for('modules.initialization_wizard') }}" style="display: flex; align-items: center; gap: 8px; padding: 7px 10px; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 6px; color: #1E40AF; font-size: 12px; font-weight: 600; text-decoration: none;">
+          <svg width="15" height="15" fill="none" stroke="#2563EB" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          Manage Factory
+        </a>
+        {% endif %}
+        <a href="{{ url_for('modules.reports_dashboard') }}" style="display: flex; align-items: center; gap: 8px; padding: 7px 10px; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 6px; color: #1E40AF; font-size: 12px; font-weight: 600; text-decoration: none;">
+          <svg width="15" height="15" fill="none" stroke="#2563EB" stroke-width="2" viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+          View Reports
+        </a>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<!-- Bottom KPI Strip (6 Cards) -->
+<div class="layout-kpi-strip" style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin-top: 16px;">
+  <!-- 1. Total Departments -->
+  <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 10px; padding: 12px 14px; display: flex; align-items: center; gap: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.03);">
+    <div style="width: 44px; height: 44px; border-radius: 10px; background: #EFF6FF; color: #2563EB; display: grid; place-items: center; flex-shrink: 0;">
+      <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 21h18M3 7v14M21 7v14M7 21V11M11 21v-6M15 21v-8M7 7l4-4 4 4"/></svg>
+    </div>
+    <div>
+      <strong style="font-size: 20px; font-weight: 800; color: #1E293B; line-height: 1.1; display: block;">{{ summary.total }}</strong>
+      <small style="color: #64748B; font-size: 11px; font-weight: 600; text-transform: capitalize;">Total Departments</small>
+    </div>
+  </div>
+
+  <!-- 2. Production Sections -->
+  <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 10px; padding: 12px 14px; display: flex; align-items: center; gap: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.03);">
+    <div style="width: 44px; height: 44px; border-radius: 10px; background: #ECFDF5; color: #059669; display: grid; place-items: center; flex-shrink: 0;">
+      <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </div>
+    <div>
+      <strong style="font-size: 20px; font-weight: 800; color: #1E293B; line-height: 1.1; display: block;">{{ summary.production }}</strong>
+      <small style="color: #64748B; font-size: 11px; font-weight: 600; text-transform: capitalize;">Production Sections</small>
+    </div>
+  </div>
+
+  <!-- 3. Warehouses -->
+  <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 10px; padding: 12px 14px; display: flex; align-items: center; gap: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.03);">
+    <div style="width: 44px; height: 44px; border-radius: 10px; background: #FFF7ED; color: #EA580C; display: grid; place-items: center; flex-shrink: 0;">
+      <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+    </div>
+    <div>
+      <strong style="font-size: 20px; font-weight: 800; color: #1E293B; line-height: 1.1; display: block;">{{ summary.warehouses }}</strong>
+      <small style="color: #64748B; font-size: 11px; font-weight: 600; text-transform: capitalize;">Warehouses</small>
+    </div>
+  </div>
+
+  <!-- 4. Active -->
+  <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 10px; padding: 12px 14px; display: flex; align-items: center; gap: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.03);">
+    <div style="width: 44px; height: 44px; border-radius: 10px; background: #ECFDF5; color: #10B981; display: grid; place-items: center; flex-shrink: 0;">
+      <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9 12l2 2 4-4"/></svg>
+    </div>
+    <div>
+      <strong style="font-size: 20px; font-weight: 800; color: #1E293B; line-height: 1.1; display: block;">{{ summary.active }}</strong>
+      <small style="color: #64748B; font-size: 11px; font-weight: 600; text-transform: capitalize;">Active</small>
+    </div>
+  </div>
+
+  <!-- 5. Inactive -->
+  <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 10px; padding: 12px 14px; display: flex; align-items: center; gap: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.03);">
+    <div style="width: 44px; height: 44px; border-radius: 10px; background: #FEF2F2; color: #EF4444; display: grid; place-items: center; flex-shrink: 0;">
+      <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="10" y1="15" x2="10" y2="9"/><line x1="14" y1="15" x2="14" y2="9"/></svg>
+    </div>
+    <div>
+      <strong style="font-size: 20px; font-weight: 800; color: #1E293B; line-height: 1.1; display: block;">{{ summary.inactive }}</strong>
+      <small style="color: #64748B; font-size: 11px; font-weight: 600; text-transform: capitalize;">Inactive</small>
+    </div>
+  </div>
+
+  <!-- 6. Maintenance -->
+  <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 10px; padding: 12px 14px; display: flex; align-items: center; gap: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.03);">
+    <div style="width: 44px; height: 44px; border-radius: 10px; background: #F5F3FF; color: #8B5CF6; display: grid; place-items: center; flex-shrink: 0;">
+      <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+    </div>
+    <div>
+      <strong style="font-size: 20px; font-weight: 800; color: #1E293B; line-height: 1.1; display: block;">0</strong>
+      <small style="color: #64748B; font-size: 11px; font-weight: 600; text-transform: capitalize;">Maintenance</small>
+    </div>
+  </div>
+</div>
+
+<!-- Bottom Layout Watermark & Location -->
+<div style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px; padding: 6px 12px; flex-wrap: wrap; gap: 8px;">
+  <div style="display: flex; align-items: center; gap: 8px;">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="#15803D"><path d="M17 8C8 10 5.9 16.17 3.82 21.34L5.71 22l1-2.3A4.49 4.49 0 0 0 8 20C19 20 22 3 22 3c-1 2-8 2.25-13 3.25S2 11.5 2 13.5s1.75 3.75 1.75 3.75C7 8 17 8 17 8z"/></svg>
+    <div style="font-size: 13px; font-weight: 700; font-style: italic; color: #14532D; line-height: 1.25;">
+      <div>Smart Factory...</div>
+      <div style="margin-left: 12px;">Smart Future...</div>
+    </div>
+  </div>
+  <div style="font-size: 12px; color: #64748B; font-weight: 600; display: flex; align-items: center; gap: 6px;">
+    <span>📍 South Indian Snacks Manufacturing Plant</span>
+    <span>•</span>
+    <span style="color: #0D9488; font-weight: 700;">Tamilnadu, India</span>
+  </div>
+</div>
+
+<script>
+var deptMapData = {
+  "Murukku Production": { id: 1, batch: "Batch 1: 188 Packets", labours: "10 Labours on duty" },
+  "Potato Chips Production": { id: 2, batch: "Batch 1: 192 Packets", labours: "6 Labours on duty" },
+  "Banana Chips Production": { id: 3, batch: "Batch 1: 185 Packets", labours: "6 Labours on duty" },
+  "Mixture Production": { id: 4, batch: "Batch 1: 100 kg Output", labours: "4 Labours on duty" },
+  "Mysore Pak Production": { id: 5, batch: "Batch 1: 190 Packets", labours: "4 Labours on duty" },
+  "Raw Material Warehouse": { id: 6, batch: "Flour 60kg • Oil 150L in stock", labours: "3 Handlers on duty" },
+  "Packaging Warehouse": { id: 7, batch: "5,000 Pouches • 391 Cartons", labours: "2 Handlers on duty" },
+  "Packaging Material Warehouse": { id: 7, batch: "5,000 Pouches • 391 Cartons", labours: "2 Handlers on duty" },
+  "Finished Goods Warehouse": { id: 8, batch: "Murukku 188 pkts • Chips 192 pkts", labours: "3 Handlers on duty" },
+  "Quality Control": { id: 9, batch: "All batches tested & cleared", labours: "2 QA Analysts on duty" },
+  "Dispatch": { id: 10, batch: "150 Packets Staged for Retailer A", labours: "2 Logistics staff on duty" },
+  "Dispatch Section": { id: 10, batch: "150 Packets Staged for Retailer A", labours: "2 Logistics staff on duty" },
+  "Administration": { id: 11, batch: "Plant Operations & HR Active", labours: "Plant Office" },
+  "Office & Administration": { id: 11, batch: "Plant Operations & HR Active", labours: "Plant Office" }
+};
+
+document.querySelectorAll('.zone').forEach(function(zone) {
+  zone.addEventListener('click', function(e) {
+    var name = zone.dataset.name || '';
+    var data = deptMapData[name] || { id: 1, batch: "Active", labours: "Assigned" };
+    
+    document.getElementById('activeDeptName').textContent = name;
+    document.getElementById('activeDeptDetails').textContent = data.batch + " • " + data.labours;
+    document.getElementById('btnRecordLocationVoice').href = "{{ url_for('voice.record') }}?department_id=" + data.id + "&location_id=" + data.id;
+    document.getElementById('btnViewDeptDetails').href = "{{ url_for('modules.factory_layout') }}".replace('/factory/layout', '/factory/departments/') + data.id;
+
+    // Update aside
+    var nameEl = document.getElementById('factoryInfoName');
+    if (nameEl) nameEl.textContent = name;
+  });
+});
+</script>
+{% endblock %}

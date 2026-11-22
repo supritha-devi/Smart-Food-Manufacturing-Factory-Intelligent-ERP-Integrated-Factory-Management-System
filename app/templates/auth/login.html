@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block title %}Login | Smart Food Manufacturing Factory{% endblock %}
+{% block content_full %}
+<div class="login-page">
+  <div class="login-card">
+    <div class="login-brand"><span class="brand-mark large">SF</span><div><strong>Smart Food Manufacturing Factory</strong><small>Quality Snacks - Healthy Tomorrow</small></div></div>
+    <h1>Welcome back</h1><p>Sign in to continue to the factory workspace.</p>
+    {% include '_flash.html' %}
+    <form method="post">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <label class="form-label" for="identifier">Email address / Username</label>
+      <input class="form-control" id="identifier" name="identifier" autocomplete="username" required>
+      <label class="form-label mt-3" for="password">Password</label>
+      <div class="password-wrap"><input class="form-control" id="password" name="password" type="password" autocomplete="current-password" required><button type="button" class="password-toggle" data-target="password">Show</button></div>
+      <div class="d-flex justify-content-between align-items-center mt-3"><label class="remember"><input type="checkbox" name="remember" value="1"> Remember me</label><a href="{{ url_for('auth.forgot_password') }}">Forgot password?</a></div>
+      <button class="btn btn-primary w-100 mt-4" type="submit">Sign in</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

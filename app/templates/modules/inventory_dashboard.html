@@ -1,0 +1,272 @@
+{% extends 'base.html' %}
+{% block title %}Inventory & Warehouse - Smart Food Manufacturing Factory{% endblock %}
+{% block content %}
+<style>
+  .inv-hero {
+    background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
+    color: #FFFFFF;
+    border-radius: 14px;
+    padding: 20px 24px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.12);
+  }
+  .inv-kpi {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .inv-kpi:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(0,0,0,0.06);
+  }
+  .inv-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+  .inv-card {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+  }
+</style>
+
+<!-- Hero Header Banner -->
+<div class="inv-hero">
+  <div>
+    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+      <span style="background: rgba(34, 197, 94, 0.2); color: #86EFAC; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 9999px; text-transform: uppercase;">
+        Module 11
+      </span>
+      <span style="color: #94A3B8; font-size: 12px;">•</span>
+      <span style="color: #CBD5E1; font-size: 12.5px;">📍 Tamilnadu Stockyards &amp; Silos</span>
+    </div>
+    <h1 style="font-size: 22px; font-weight: 800; margin: 0; color: #FFFFFF; letter-spacing: -0.01em;">
+      Inventory, Stock &amp; Warehouse Hub
+    </h1>
+    <p style="color: #94A3B8; margin: 4px 0 0 0; font-size: 13.5px;">
+      Live tracking of raw ingredients, snack seasoning packs, finished snack stock, and warehouse bins.
+    </p>
+  </div>
+  <div class="d-flex gap-2">
+    <a class="btn btn-outline-light fw-bold" href="{{ url_for('voice.record', module='Inventory') }}" style="border-radius: 8px; font-size: 13px;">
+      🎙️ Voice Stock Audit
+    </a>
+    <a class="btn btn-light fw-bold" href="{{ url_for('modules.factory_layout') }}" style="border-radius: 8px; font-size: 13px; color: #0F172A;">
+      🗺️ Factory Layout
+    </a>
+  </div>
+</div>
+
+<!-- 4 Modern Colored KPI Cards -->
+<div class="row g-3 mb-3">
+  <div class="col-md-3">
+    <div class="inv-kpi" style="border-left: 4px solid #3B82F6;">
+      <div class="inv-icon" style="background: #EFF6FF; color: #1D4ED8;">🏭</div>
+      <div>
+        <small style="color: #64748B; font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 0.04em;">Warehouses</small>
+        <div style="font-size: 20px; font-weight: 800; color: #0F172A;">{{ warehouse_count }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="inv-kpi" style="border-left: 4px solid #10B981;">
+      <div class="inv-icon" style="background: #ECFDF5; color: #047857;">📦</div>
+      <div>
+        <small style="color: #64748B; font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 0.04em;">Stock Records</small>
+        <div style="font-size: 20px; font-weight: 800; color: #0F172A;">{{ stock_count }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="inv-kpi" style="border-left: 4px solid #F59E0B;">
+      <div class="inv-icon" style="background: #FEF3C7; color: #B45309;">⚖️</div>
+      <div>
+        <small style="color: #64748B; font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 0.04em;">Pending Adjustments</small>
+        <div style="font-size: 20px; font-weight: 800; color: #0F172A;">{{ pending_adjustments }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="inv-kpi" style="border-left: 4px solid #EF4444;">
+      <div class="inv-icon" style="background: #FFF1F2; color: #BE123C;">⚠️</div>
+      <div>
+        <small style="color: #64748B; font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 0.04em;">Low-Stock Alerts</small>
+        <div style="font-size: 20px; font-weight: 800; color: #0F172A;">{{ low_stock }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <!-- Left Column: Stock Balances & Ledger -->
+  <div class="col-lg-8">
+    <div class="inv-card mb-3">
+      <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
+        <h3 class="m-0 fs-5 fw-bold text-dark">📦 Current Stock Balances</h3>
+        <span class="badge bg-light text-dark border">{{ stock|length }} Items</span>
+      </div>
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead style="background: #F8FAFC; color: #475569; font-size: 12px; text-transform: uppercase;">
+            <tr>
+              <th style="padding: 12px 16px;">Item &amp; Classification</th>
+              <th>Warehouse</th>
+              <th>Available</th>
+              <th>Reserved</th>
+              <th>Lot / Batch</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in stock %}
+            <tr>
+              <td style="padding: 12px 16px;">
+                <strong class="text-dark">{{ row.item_name or ('Item ' ~ row.item_id) }}</strong>
+                <small class="d-block text-muted">{{ row.item_type }}</small>
+              </td>
+              <td>
+                <span class="badge bg-light text-dark border">{{ row.warehouse_name or '—' }}</span>
+              </td>
+              <td>
+                <span class="fw-bold {% if row.quantity <= 10 %}text-danger{% else %}text-dark{% endif %}">
+                  {{ row.quantity }}
+                </span>
+              </td>
+              <td>{{ row.reserved_quantity }}</td>
+              <td><code>{{ row.batch_lot or '—' }}</code></td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="5" class="text-center py-4 text-muted">No stock records logged yet.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Stock Movement Ledger -->
+    <div class="inv-card">
+      <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
+        <h3 class="m-0 fs-5 fw-bold text-dark">📋 Real-Time Stock Movement Ledger</h3>
+        <span class="badge bg-light text-dark border">{{ ledger|length }} Movements</span>
+      </div>
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead style="background: #F8FAFC; color: #475569; font-size: 12px; text-transform: uppercase;">
+            <tr>
+              <th style="padding: 12px 16px;">Movement Type</th>
+              <th>Warehouse</th>
+              <th>Qty Change</th>
+              <th>Ending Balance</th>
+              <th>Reference Document</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in ledger %}
+            <tr>
+              <td style="padding: 12px 16px;">
+                <span class="badge {% if 'IN' in row.movement_type or 'PROD' in row.movement_type %}bg-success{% else %}bg-secondary{% endif %}">
+                  {{ row.movement_type }}
+                </span>
+              </td>
+              <td>{{ row.warehouse_name or '—' }}</td>
+              <td class="fw-bold text-dark">{{ row.quantity }}</td>
+              <td>{{ row.balance_quantity }}</td>
+              <td><small class="text-muted">{{ row.reference_type or '—' }}</small></td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="5" class="text-center py-4 text-muted">No ledger movements recorded yet.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Column: Adjustment Forms -->
+  <div class="col-lg-4">
+    <div class="inv-card p-3 mb-3">
+      <h3 class="fs-5 fw-bold text-dark mb-3">⚖️ Submit Stock Adjustment</h3>
+      <form method="post" action="{{ url_for('modules.inventory_stock_adjust') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        
+        <label class="form-label small text-muted text-uppercase fw-bold">Material Type</label>
+        <select class="form-select mb-2" name="item_type" required style="border-radius: 8px;">
+          <option value="RAW_MATERIAL">Raw Material (Flour, Oil, Spices)</option>
+          <option value="PACKAGING">Packaging Material (Pouches, Cartons)</option>
+          <option value="PRODUCT">Finished Snack Product</option>
+        </select>
+
+        <label class="form-label small text-muted text-uppercase fw-bold">Select Item</label>
+        <select class="form-select mb-2" name="item_id" required style="border-radius: 8px;">
+          <option value="">-- Choose Item --</option>
+          {% for material in materials %}
+          <option value="{{ material.id }}">RM: {{ material.name }}</option>
+          {% endfor %}
+          {% for product in products %}
+          <option value="{{ product.id }}">FG: {{ product.name }}</option>
+          {% endfor %}
+        </select>
+
+        <label class="form-label small text-muted text-uppercase fw-bold">Warehouse / Silo</label>
+        <select class="form-select mb-2" name="warehouse_id" required style="border-radius: 8px;">
+          <option value="">-- Choose Warehouse --</option>
+          {% for warehouse in warehouses %}
+          <option value="{{ warehouse.id }}">{{ warehouse.name }}</option>
+          {% endfor %}
+        </select>
+
+        <label class="form-label small text-muted text-uppercase fw-bold">Quantity Change</label>
+        <input class="form-control mb-2" name="quantity" type="number" step="0.001" placeholder="+ or - Quantity" required style="border-radius: 8px;">
+
+        <label class="form-label small text-muted text-uppercase fw-bold">Reason / Audit Justification</label>
+        <input class="form-control mb-3" name="reason" placeholder="e.g. Physical inventory count variance" required style="border-radius: 8px;">
+
+        <button class="btn btn-primary w-100 fw-bold py-2" type="submit" style="border-radius: 8px;">
+          Submit for Approval
+        </button>
+      </form>
+    </div>
+
+    <!-- Pending Adjustments -->
+    <div class="inv-card p-3">
+      <h3 class="fs-5 fw-bold text-dark mb-3">⏳ Pending Approvals</h3>
+      {% for adjustment in adjustments %}
+      {% if adjustment.status=='PENDING' %}
+      <form method="post" action="{{ url_for('modules.inventory_adjustment_approve', adjustment_id=adjustment.id) }}" class="mb-2">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <button class="btn btn-sm btn-outline-warning text-dark w-100 text-start d-flex justify-content-between align-items-center py-2 px-3" style="border-radius: 8px;">
+          <span>Approve <strong>{{ adjustment.adjustment }}</strong> (Item #{{ adjustment.item_id }})</span>
+          <span class="badge bg-warning text-dark">Approve</span>
+        </button>
+      </form>
+      {% endif %}
+      {% else %}
+      <p class="text-muted mb-0 small">No pending adjustments awaiting approval.</p>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

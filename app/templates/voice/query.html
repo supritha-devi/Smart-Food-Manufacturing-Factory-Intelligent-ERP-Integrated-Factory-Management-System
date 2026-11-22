@@ -1,0 +1,6 @@
+{% extends 'base.html' %}
+{% block title %}Voice Factory Query{% endblock %}
+{% block content %}
+<div class="page-heading"><div><p class="eyebrow">Smart Voice Assistant</p><h1>Factory Voice Query</h1></div><a class="btn btn-secondary-soft" href="{{ url_for('voice.library') }}">Voice Library</a></div>
+<div class="row g-3"><div class="col-lg-6"><div class="panel"><h2>Ask in English or Tamil</h2><form method="post"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><textarea class="form-control mb-3" name="question" rows="4" placeholder="Example: Show today's production status">{{ question or '' }}</textarea><button class="btn btn-primary w-100" type="submit">Query Factory Database</button></form></div></div><div class="col-lg-6">{% if answer %}<div class="panel"><h2>Database answer</h2><p>{{ answer }}</p>{% if data %}<ul class="review-list">{% for key,value in data.items() %}<li><span>{{ key|replace('_',' ')|title }}</span><strong>{{ value }}</strong></li>{% endfor %}</ul>{% endif %}</div>{% endif %}</div></div>
+{% endblock %}

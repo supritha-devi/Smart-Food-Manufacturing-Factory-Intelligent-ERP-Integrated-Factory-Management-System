@@ -1,0 +1,299 @@
+{% extends 'base.html' %}
+{% block title %}Purchasing & Procurement - Smart Food Manufacturing Factory{% endblock %}
+{% block content %}
+<style>
+  .po-hero {
+    background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
+    color: #FFFFFF;
+    border-radius: 14px;
+    padding: 20px 24px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.12);
+  }
+  .po-kpi {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .po-kpi:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(0,0,0,0.06);
+  }
+  .po-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+  .po-card {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+  }
+</style>
+
+<!-- Hero Header Banner -->
+<div class="po-hero">
+  <div>
+    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+      <span style="background: rgba(34, 197, 94, 0.2); color: #86EFAC; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 9999px; text-transform: uppercase;">
+        Module 8
+      </span>
+      <span style="color: #94A3B8; font-size: 12px;">•</span>
+      <span style="color: #CBD5E1; font-size: 12.5px;">📍 Tamilnadu Raw Material Sourcing</span>
+    </div>
+    <h1 style="font-size: 22px; font-weight: 800; margin: 0; color: #FFFFFF; letter-spacing: -0.01em;">
+      Purchasing, Sourcing &amp; Goods Receipts
+    </h1>
+    <p style="color: #94A3B8; margin: 4px 0 0 0; font-size: 13.5px;">
+      Procure flour, oils, spices, seasonings, packaging films from certified local agricultural suppliers.
+    </p>
+  </div>
+  <div class="d-flex gap-2 flex-wrap">
+    {% if 'OWNER' in session.roles or 'FACTORY ADMIN' in session.roles %}
+    <a class="btn btn-primary fw-bold" href="{{ url_for('modules.supplier_create') }}" style="border-radius: 8px; font-size: 13px;">
+      + Add Supplier
+    </a>
+    {% endif %}
+    <a class="btn btn-light fw-bold" href="{{ url_for('modules.inventory_dashboard') }}" style="border-radius: 8px; font-size: 13px; color: #0F172A;">
+      📦 Inventory Stock
+    </a>
+  </div>
+</div>
+
+<!-- 4 Colored KPI Cards -->
+<div class="row g-3 mb-3">
+  <div class="col-md-3">
+    <div class="po-kpi" style="border-left: 4px solid #3B82F6;">
+      <div class="po-icon" style="background: #EFF6FF; color: #1D4ED8;">🤝</div>
+      <div>
+        <small style="color: #64748B; font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 0.04em;">Active Suppliers</small>
+        <div style="font-size: 20px; font-weight: 800; color: #0F172A;">{{ supplier_count }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="po-kpi" style="border-left: 4px solid #F59E0B;">
+      <div class="po-icon" style="background: #FEF3C7; color: #B45309;">📑</div>
+      <div>
+        <small style="color: #64748B; font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 0.04em;">Purchase Orders</small>
+        <div style="font-size: 20px; font-weight: 800; color: #0F172A;">{{ order_count }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="po-kpi" style="border-left: 4px solid #10B981;">
+      <div class="po-icon" style="background: #ECFDF5; color: #047857;">✅</div>
+      <div>
+        <small style="color: #64748B; font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 0.04em;">Approved Orders</small>
+        <div style="font-size: 20px; font-weight: 800; color: #0F172A;">{{ approved_count }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="po-kpi" style="border-left: 4px solid #8B5CF6;">
+      <div class="po-icon" style="background: #F3E8FF; color: #6D28D9;">🚚</div>
+      <div>
+        <small style="color: #64748B; font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 0.04em;">Goods Receipts</small>
+        <div style="font-size: 20px; font-weight: 800; color: #0F172A;">{{ receipt_count }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <!-- Left Column: Purchase Orders -->
+  <div class="col-lg-7">
+    <div class="po-card mb-3">
+      <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
+        <h3 class="m-0 fs-5 fw-bold text-dark">📜 Purchase Orders</h3>
+        <span class="badge bg-light text-dark border">{{ orders|length }} Orders</span>
+      </div>
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead style="background: #F8FAFC; color: #475569; font-size: 12px; text-transform: uppercase;">
+            <tr>
+              <th style="padding: 12px 16px;">PO #</th>
+              <th>Supplier</th>
+              <th>Date</th>
+              <th>Status</th>
+              <th>Total (₹)</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for order in orders %}
+            <tr>
+              <td style="padding: 12px 16px;">
+                <strong class="text-dark">{{ order.order_number }}</strong>
+              </td>
+              <td>{{ order.supplier_name or '—' }}</td>
+              <td><small>{{ order.order_date }}</small></td>
+              <td>
+                <span class="status {{ 'active' if order.status=='APPROVED' else 'inactive' }}">
+                  {{ order.status }}
+                </span>
+              </td>
+              <td><strong class="text-success">{{ order.total_paise | rupees }}</strong></td>
+              <td>
+                {% if order.status=='DRAFT' %}
+                <form method="post" action="{{ url_for('modules.purchase_order_approve', order_id=order.id) }}">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                  <button class="btn btn-sm btn-primary fw-bold" style="border-radius: 6px;">Approve</button>
+                </form>
+                {% else %}
+                <span class="text-muted">—</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="6" class="text-center py-4 text-muted">No purchase orders created yet.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Column: New PO & Goods Receipt -->
+  <div class="col-lg-5">
+    <div class="po-card p-3 mb-3">
+      <h3 class="fs-5 fw-bold text-dark mb-3">📝 New Purchase Order</h3>
+      <form method="post" action="{{ url_for('modules.purchase_order_create') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        
+        <label class="form-label small text-muted text-uppercase fw-bold">Supplier</label>
+        <select class="form-select mb-2" name="supplier_id" required style="border-radius: 8px;">
+          <option value="">-- Choose Supplier --</option>
+          {% for supplier in suppliers %}
+          <option value="{{ supplier.id }}">{{ supplier.name }}</option>
+          {% endfor %}
+        </select>
+
+        <label class="form-label small text-muted text-uppercase fw-bold">Order Date</label>
+        <input class="form-control mb-2" name="order_date" type="date" required style="border-radius: 8px;">
+
+        <label class="form-label small text-muted text-uppercase fw-bold">Raw Material / Ingredient</label>
+        <select class="form-select mb-2" name="material_id" required style="border-radius: 8px;">
+          <option value="">-- Choose Material --</option>
+          {% for material in materials %}
+          <option value="{{ material.id }}">{{ material.name }} ({{ material.unit }})</option>
+          {% endfor %}
+        </select>
+
+        <div class="row g-2 mb-2">
+          <div class="col">
+            <label class="form-label small text-muted text-uppercase fw-bold">Quantity</label>
+            <input class="form-control" name="quantity" type="number" min="0.001" step="0.001" placeholder="Quantity" required style="border-radius: 8px;">
+          </div>
+          <div class="col">
+            <label class="form-label small text-muted text-uppercase fw-bold">Unit</label>
+            <input class="form-control" name="unit" placeholder="kg / bags / ltr" required style="border-radius: 8px;">
+          </div>
+        </div>
+
+        <label class="form-label small text-muted text-uppercase fw-bold">Unit Price in Paise</label>
+        <input class="form-control mb-2" name="unit_price_paise" type="number" min="0" placeholder="e.g. 4500 (= ₹45.00)" required style="border-radius: 8px;">
+
+        <label class="form-label small text-muted text-uppercase fw-bold">Notes</label>
+        <textarea class="form-control mb-3" name="notes" rows="2" placeholder="Sourcing specifications or delivery instructions" style="border-radius: 8px;"></textarea>
+
+        <button class="btn btn-primary w-100 fw-bold py-2" type="submit" style="border-radius: 8px;">
+          Create Draft PO
+        </button>
+      </form>
+    </div>
+
+    <!-- Goods Receipt Form -->
+    <div class="po-card p-3">
+      <h3 class="fs-5 fw-bold text-dark mb-3">🚚 Inward Goods Receipt (GRN)</h3>
+      <form method="post" action="{{ url_for('modules.goods_receipt_create') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        
+        <label class="form-label small text-muted text-uppercase fw-bold">Approved PO</label>
+        <select class="form-select mb-2" name="order_id" required style="border-radius: 8px;">
+          <option value="">-- Select Approved Purchase Order --</option>
+          {% for order in orders %}
+          {% if order.status=='APPROVED' %}
+          <option value="{{ order.id }}">{{ order.order_number }}</option>
+          {% endif %}
+          {% endfor %}
+        </select>
+
+        <label class="form-label small text-muted text-uppercase fw-bold">Destination Warehouse</label>
+        <select class="form-select mb-2" name="warehouse_id" required style="border-radius: 8px;">
+          <option value="">-- Choose Warehouse --</option>
+          {% for warehouse in warehouses %}
+          <option value="{{ warehouse.id }}">{{ warehouse.name }}</option>
+          {% endfor %}
+        </select>
+
+        <label class="form-label small text-muted text-uppercase fw-bold">Received Date</label>
+        <input class="form-control mb-3" name="received_date" type="date" required style="border-radius: 8px;">
+
+        <button class="btn btn-secondary-soft w-100 fw-bold py-2" type="submit" style="border-radius: 8px;">
+          Record Goods Receipt
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Recent Goods Receipts Table -->
+<div class="po-card mt-3">
+  <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
+    <h3 class="m-0 fs-5 fw-bold text-dark">📦 Recent Inward Goods Receipts</h3>
+    <span class="badge bg-light text-dark border">{{ receipts|length }} Receipts</span>
+  </div>
+  <div class="table-responsive">
+    <table class="table align-middle mb-0">
+      <thead style="background: #F8FAFC; color: #475569; font-size: 12px; text-transform: uppercase;">
+        <tr>
+          <th style="padding: 12px 16px;">Receipt #</th>
+          <th>Purchase Order</th>
+          <th>Supplier</th>
+          <th>Date Received</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for receipt in receipts %}
+        <tr>
+          <td style="padding: 12px 16px;">
+            <strong class="text-dark">{{ receipt.receipt_number }}</strong>
+          </td>
+          <td>{{ receipt.order_number or '—' }}</td>
+          <td>{{ receipt.supplier_name or '—' }}</td>
+          <td><small>{{ receipt.received_date }}</small></td>
+          <td><span class="status inactive">{{ receipt.status }}</span></td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="5" class="text-center py-4 text-muted">No goods receipts registered yet.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

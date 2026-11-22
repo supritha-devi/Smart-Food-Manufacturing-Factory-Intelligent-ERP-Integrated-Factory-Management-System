@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block title %}{{ 'Edit Employee' if employee else 'Add Employee' }}{% endblock %}
+{% block content %}
+<div class="page-heading"><div><p class="eyebrow">Module 3</p><h1>{{ 'Edit Employee' if employee else 'Add Employee' }}</h1></div><a class="btn btn-secondary-soft" href="{{ url_for('modules.labour_dashboard') }}">Back</a></div>
+<div class="panel form-panel"><form method="post"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><div class="row g-3">
+{% if not employee %}<div class="col-md-6"><label class="form-label">Employee code *</label><input class="form-control" name="employee_code" required></div>{% endif %}
+<div class="col-md-6"><label class="form-label">Employee name *</label><input class="form-control" name="name" value="{{ employee.name if employee else '' }}" required></div>
+<div class="col-md-4"><label class="form-label">Gender</label><select class="form-select" name="gender"><option value="">Select</option><option {% if employee and employee.gender=='MALE' %}selected{% endif %}>MALE</option><option {% if employee and employee.gender=='FEMALE' %}selected{% endif %}>FEMALE</option><option {% if employee and employee.gender=='OTHER' %}selected{% endif %}>OTHER</option></select></div>
+<div class="col-md-4"><label class="form-label">Date of birth</label><input class="form-control" name="date_of_birth" type="date" value="{{ employee.date_of_birth if employee else '' }}"></div>
+<div class="col-md-4"><label class="form-label">Nationality</label><input class="form-control" name="nationality" value="{{ employee.nationality if employee else 'Indian' }}"></div>
+<div class="col-md-4"><label class="form-label">State</label><input class="form-control" name="state" value="{{ employee.state if employee else '' }}"></div>
+<div class="col-md-4"><label class="form-label">District</label><input class="form-control" name="district" value="{{ employee.district if employee else '' }}"></div>
+<div class="col-md-4"><label class="form-label">Caste</label><input class="form-control" name="caste" value="{{ employee.caste if employee else '' }}"></div>
+<div class="col-md-4"><label class="form-label">Religion</label><input class="form-control" name="religion" value="{{ employee.religion if employee else '' }}"></div>
+<div class="col-md-4"><label class="form-label">Blood group</label><select class="form-select" name="blood_group"><option value="">Select</option>{% for blood in ['A+','A-','B+','B-','AB+','AB-','O+','O-'] %}<option {% if employee and employee.blood_group==blood %}selected{% endif %}>{{ blood }}</option>{% endfor %}</select></div>
+<div class="col-md-6"><label class="form-label">Aadhaar number</label><input class="form-control" name="aadhaar_number" inputmode="numeric" maxlength="12" value="{{ employee.aadhaar_number if employee else '' }}"></div>
+<div class="col-md-6"><label class="form-label">PAN number</label><input class="form-control" name="pan_number" maxlength="10" value="{{ employee.pan_number if employee else '' }}"></div>
+<div class="col-md-6"><label class="form-label">Voter ID number</label><input class="form-control" name="voter_id_number" value="{{ employee.voter_id_number if employee else '' }}"></div>
+<div class="col-md-6"><label class="form-label">Ration card number</label><input class="form-control" name="ration_card_number" value="{{ employee.ration_card_number if employee else '' }}"></div>
+<div class="col-md-6"><label class="form-label">ID card type</label><input class="form-control" name="id_card_type" value="{{ employee.id_card_type if employee else '' }}"></div>
+<div class="col-md-6"><label class="form-label">ID card number</label><input class="form-control" name="id_card_number" value="{{ employee.id_card_number if employee else '' }}"></div>
+<div class="col-md-6"><label class="form-label">Current address</label><textarea class="form-control" name="address" rows="3">{{ employee.address if employee else '' }}</textarea></div>
+<div class="col-md-6"><label class="form-label">Permanent address</label><textarea class="form-control" name="permanent_address" rows="3">{{ employee.permanent_address if employee else '' }}</textarea></div>
+<div class="col-md-6"><label class="form-label">Emergency contact name</label><input class="form-control" name="emergency_contact_name" value="{{ employee.emergency_contact_name if employee else '' }}"></div>
+<div class="col-md-6"><label class="form-label">Emergency contact number</label><input class="form-control" name="emergency_contact" value="{{ employee.emergency_contact if employee else '' }}"></div>
+<div class="col-md-6"><label class="form-label">Phone</label><input class="form-control" name="phone" value="{{ employee.phone if employee else '' }}"></div>
+<div class="col-md-6"><label class="form-label">Email</label><input class="form-control" name="email" type="email" value="{{ employee.email if employee else '' }}"></div>
+<div class="col-md-6"><label class="form-label">Department</label><select class="form-select" name="department_id"><option value="">Unassigned</option>{% for department in departments %}<option value="{{ department.id }}" {% if employee and employee.department_id==department.id %}selected{% endif %}>{{ department.name }}</option>{% endfor %}</select></div>
+<div class="col-md-6"><label class="form-label">Designation</label><input class="form-control" name="designation" value="{{ employee.designation if employee else '' }}"></div>
+<div class="col-md-6"><label class="form-label">Employment type</label><select class="form-select" name="employment_type"><option value="PERMANENT" {% if employee and employee.employment_type=='PERMANENT' %}selected{% endif %}>Permanent</option><option value="CONTRACT" {% if employee and employee.employment_type=='CONTRACT' %}selected{% endif %}>Contract</option><option value="TEMPORARY" {% if employee and employee.employment_type=='TEMPORARY' %}selected{% endif %}>Temporary</option></select></div>
+<div class="col-md-6"><label class="form-label">Shift</label><select class="form-select" name="shift_id"><option value="">Unassigned</option>{% for shift in shifts %}<option value="{{ shift.id }}" {% if employee and employee.shift_id==shift.id %}selected{% endif %}>{{ shift.name }}</option>{% endfor %}</select></div>
+<div class="col-md-6"><label class="form-label">Status</label><select class="form-select" name="status"><option value="ACTIVE" {% if not employee or employee.status=='ACTIVE' %}selected{% endif %}>Active</option><option value="INACTIVE" {% if employee and employee.status=='INACTIVE' %}selected{% endif %}>Inactive</option></select></div>
+</div><div class="form-actions"><button class="btn btn-primary" type="submit">{{ 'Save Employee' if employee else 'Create Employee' }}</button></div></form></div>
+{% endblock %}

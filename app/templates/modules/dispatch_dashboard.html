@@ -1,0 +1,229 @@
+{% extends 'base.html' %}
+{% block title %}Warehouse Dispatch & Logistics - Smart Food Manufacturing Factory{% endblock %}
+{% block content %}
+<style>
+  .disp-hero {
+    background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
+    color: #FFFFFF;
+    border-radius: 14px;
+    padding: 20px 24px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.12);
+  }
+  .disp-kpi {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .disp-kpi:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(0,0,0,0.06);
+  }
+  .disp-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+  .disp-card {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+  }
+</style>
+
+<!-- Hero Header Banner -->
+<div class="disp-hero">
+  <div>
+    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+      <span style="background: rgba(34, 197, 94, 0.2); color: #86EFAC; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 9999px; text-transform: uppercase;">
+        Module 14
+      </span>
+      <span style="color: #94A3B8; font-size: 12px;">•</span>
+      <span style="color: #CBD5E1; font-size: 12.5px;">📍 Tamilnadu Distribution Dock</span>
+    </div>
+    <h1 style="font-size: 22px; font-weight: 800; margin: 0; color: #FFFFFF; letter-spacing: -0.01em;">
+      Warehouse Dispatch &amp; Regional Logistics
+    </h1>
+    <p style="color: #94A3B8; margin: 4px 0 0 0; font-size: 13.5px;">
+      Track snack cartons picking, delivery vehicle loading, driver manifests, and delivery confirmations.
+    </p>
+  </div>
+  <div class="d-flex gap-2">
+    <a class="btn btn-outline-light fw-bold" href="{{ url_for('modules.sales_dashboard') }}" style="border-radius: 8px; font-size: 13px;">
+      🧾 Sales Invoices
+    </a>
+    <a class="btn btn-light fw-bold" href="{{ url_for('modules.inventory_dashboard') }}" style="border-radius: 8px; font-size: 13px; color: #0F172A;">
+      📦 Stock Balances
+    </a>
+  </div>
+</div>
+
+<!-- 4 Colored KPI Cards -->
+<div class="row g-3 mb-3">
+  <div class="col-md-3">
+    <div class="disp-kpi" style="border-left: 4px solid #3B82F6;">
+      <div class="disp-icon" style="background: #EFF6FF; color: #1D4ED8;">🚚</div>
+      <div>
+        <small style="color: #64748B; font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 0.04em;">Total Dispatches</small>
+        <div style="font-size: 20px; font-weight: 800; color: #0F172A;">{{ total }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="disp-kpi" style="border-left: 4px solid #F59E0B;">
+      <div class="disp-icon" style="background: #FEF3C7; color: #B45309;">📦</div>
+      <div>
+        <small style="color: #64748B; font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 0.04em;">Awaiting Picking</small>
+        <div style="font-size: 20px; font-weight: 800; color: #0F172A;">{{ awaiting }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="disp-kpi" style="border-left: 4px solid #8B5CF6;">
+      <div class="disp-icon" style="background: #F3E8FF; color: #6D28D9;">🛣️</div>
+      <div>
+        <small style="color: #64748B; font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 0.04em;">In Transit</small>
+        <div style="font-size: 20px; font-weight: 800; color: #0F172A;">{{ dispatched }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="disp-kpi" style="border-left: 4px solid #10B981;">
+      <div class="disp-icon" style="background: #ECFDF5; color: #047857;">✅</div>
+      <div>
+        <small style="color: #64748B; font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 0.04em;">Delivered Orders</small>
+        <div style="font-size: 20px; font-weight: 800; color: #0F172A;">{{ delivered }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <!-- Left Column: Dispatch Registry -->
+  <div class="col-lg-8">
+    <div class="disp-card">
+      <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
+        <h3 class="m-0 fs-5 fw-bold text-dark">📋 Dispatch Registry &amp; Fleet Transitions</h3>
+        <span class="badge bg-light text-dark border">{{ dispatches|length }} Dispatches</span>
+      </div>
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead style="background: #F8FAFC; color: #475569; font-size: 12px; text-transform: uppercase;">
+            <tr>
+              <th style="padding: 12px 16px;">Dispatch #</th>
+              <th>Invoice #</th>
+              <th>Customer</th>
+              <th>Warehouse</th>
+              <th>Status</th>
+              <th style="padding: 12px 16px;">Logistics Update</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for dispatch in dispatches %}
+            <tr>
+              <td style="padding: 12px 16px;">
+                <strong class="text-dark">{{ dispatch.dispatch_number }}</strong>
+              </td>
+              <td><small>{{ dispatch.invoice_number or '—' }}</small></td>
+              <td>{{ dispatch.customer_name or '—' }}</td>
+              <td><span class="badge bg-light text-dark border">{{ dispatch.warehouse_name or '—' }}</span></td>
+              <td>
+                <span class="status {{ 'active' if dispatch.status=='DELIVERED' else 'inactive' }}">
+                  {{ dispatch.status }}
+                </span>
+              </td>
+              <td style="padding: 12px 16px;">
+                {% if 'OWNER' in session.roles or 'FACTORY ADMIN' in session.roles %}
+                  {% if dispatch.status!='DELIVERED' and dispatch.status!='CANCELLED' %}
+                  <form method="post" action="{{ url_for('modules.dispatch_transition', dispatch_id=dispatch.id) }}" class="d-flex gap-1 flex-wrap align-items-center">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                    <select class="form-select form-select-sm" name="status" style="width: auto; border-radius: 6px;">
+                      <option value="">Next Stage</option>
+                      {% if dispatch.status=='AWAITING_PICKING' %}
+                      <option value="PICKING">Picking</option>
+                      <option value="CANCELLED">Cancelled</option>
+                      {% elif dispatch.status=='PICKING' %}
+                      <option value="DISPATCHED">Dispatched</option>
+                      <option value="CANCELLED">Cancelled</option>
+                      {% elif dispatch.status=='DISPATCHED' %}
+                      <option value="DELIVERED">Delivered</option>
+                      <option value="CANCELLED">Cancelled</option>
+                      {% endif %}
+                    </select>
+                    <input class="form-control form-control-sm" name="vehicle_number" placeholder="TN-01-AB-1234" style="width: 120px; border-radius: 6px;">
+                    <input class="form-control form-control-sm" name="driver_name" placeholder="Driver" style="width: 100px; border-radius: 6px;">
+                    <button class="btn btn-sm btn-primary fw-bold" style="border-radius: 6px;">Update</button>
+                  </form>
+                  {% else %}
+                  <span class="text-muted">—</span>
+                  {% endif %}
+                {% else %}
+                <span class="text-muted">—</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="6" class="text-center py-4 text-muted">No dispatch orders in transit.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Column: Create Dispatch Form -->
+  <div class="col-lg-4">
+    <div class="disp-card p-3">
+      <h3 class="fs-5 fw-bold text-dark mb-3">📦 Initiate New Dispatch</h3>
+      {% if 'OWNER' in session.roles or 'FACTORY ADMIN' in session.roles %}
+      <form method="post" action="{{ url_for('modules.dispatch_create') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        
+        <label class="form-label small text-muted text-uppercase fw-bold">Select Posted Invoice</label>
+        <select class="form-select mb-2" name="invoice_id" required style="border-radius: 8px;">
+          <option value="">-- Choose Invoice --</option>
+          {% for invoice in invoices %}
+          <option value="{{ invoice.id }}">{{ invoice.invoice_number }} - {{ invoice.customer_name or 'Customer' }}</option>
+          {% endfor %}
+        </select>
+
+        <label class="form-label small text-muted text-uppercase fw-bold">Dispatch Warehouse</label>
+        <select class="form-select mb-3" name="warehouse_id" required style="border-radius: 8px;">
+          <option value="">-- Choose Warehouse --</option>
+          {% for warehouse in warehouses %}
+          <option value="{{ warehouse.id }}">{{ warehouse.name }}</option>
+          {% endfor %}
+        </select>
+
+        <button class="btn btn-primary w-100 fw-bold py-2" type="submit" style="border-radius: 8px;">
+          Create Dispatch Order
+        </button>
+      </form>
+      {% else %}
+      <p class="text-muted mb-0 small">Only Owner or Factory Admin can create dispatches.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

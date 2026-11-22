@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: smart-factory-erp
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn run:app
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.10
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        sync: false
+      - key: SESSION_COOKIE_SECURE
+        value: true

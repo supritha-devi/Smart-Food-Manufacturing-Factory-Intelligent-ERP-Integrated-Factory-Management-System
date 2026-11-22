@@ -1,0 +1,306 @@
+{% extends 'base.html' %}
+{% block title %}Owner Factory Overview - Smart Food Manufacturing Factory{% endblock %}
+{% block content %}
+<style>
+  .owner-hero {
+    background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
+    color: #FFFFFF;
+    border-radius: 14px;
+    padding: 22px 26px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.12);
+  }
+  .kpi-tile {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 16px 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .kpi-tile:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.06);
+  }
+  .kpi-icon-box {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+  .dock-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 16px;
+    background: #FFFFFF;
+    border: 1px solid #CBD5E1;
+    border-radius: 8px;
+    color: #1E293B;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.15s ease;
+  }
+  .dock-btn:hover {
+    background: #F1F5F9;
+    border-color: #94A3B8;
+    color: #0F172A;
+  }
+</style>
+
+<!-- Hero Executive Header -->
+<div class="owner-hero">
+  <div>
+    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+      <span style="background: rgba(34, 197, 94, 0.2); color: #86EFAC; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 9999px; text-transform: uppercase;">
+        Executive Control
+      </span>
+      <span style="color: #94A3B8; font-size: 12px;">•</span>
+      <span style="color: #CBD5E1; font-size: 12.5px;">📍 Tamilnadu Manufacturing Plant</span>
+    </div>
+    <h1 style="font-size: 23px; font-weight: 800; margin: 0; color: #FFFFFF; letter-spacing: -0.01em;">
+      Owner Operational Dashboard
+    </h1>
+    <p style="color: #94A3B8; margin: 4px 0 0 0; font-size: 13.5px;">
+      Live tracking of production batches, plant labour, machine operations, sales orders, and Tamil voice instructions.
+    </p>
+  </div>
+  <div class="d-flex gap-2 flex-wrap">
+    <a class="btn btn-light fw-bold" href="{{ url_for('modules.factory_layout') }}" style="border-radius: 8px; font-size: 13px;">
+      🗺️ 2D Factory Map
+    </a>
+    <a class="btn btn-primary fw-bold" href="{{ url_for('voice.record') }}" style="border-radius: 8px; font-size: 13px;">
+      🎙️ Record Voice Note
+    </a>
+    <a class="btn btn-outline-light" href="{{ url_for('modules.initialization_wizard') }}" style="border-radius: 8px; font-size: 13px;">
+      ⚙️ Setup &amp; Wizard
+    </a>
+  </div>
+</div>
+
+<!-- Primary 4 KPI Tiles -->
+<div class="row g-3">
+  <!-- Products -->
+  <div class="col-xl-3 col-md-6">
+    <div class="kpi-tile">
+      <div class="kpi-icon-box" style="background: #EFF6FF; color: #2563EB;">🍪</div>
+      <div>
+        <strong style="font-size: 22px; font-weight: 800; color: #1E293B; line-height: 1.1; display: block;">{{ counts.products }}</strong>
+        <small style="color: #64748B; font-size: 12px; font-weight: 600;">Active Snack Products</small>
+      </div>
+    </div>
+  </div>
+
+  <!-- Active Batches -->
+  <div class="col-xl-3 col-md-6">
+    <div class="kpi-tile">
+      <div class="kpi-icon-box" style="background: #ECFDF5; color: #059669;">⚡</div>
+      <div>
+        <strong style="font-size: 22px; font-weight: 800; color: #1E293B; line-height: 1.1; display: block;">{{ operational.active_batches }}</strong>
+        <small style="color: #64748B; font-size: 12px; font-weight: 600;">Batches in Production</small>
+      </div>
+    </div>
+  </div>
+
+  <!-- Machines -->
+  <div class="col-xl-3 col-md-6">
+    <div class="kpi-tile">
+      <div class="kpi-icon-box" style="background: #FEF3C7; color: #D97706;">⚙️</div>
+      <div>
+        <strong style="font-size: 22px; font-weight: 800; color: #1E293B; line-height: 1.1; display: block;">{{ counts.machines }}</strong>
+        <small style="color: #64748B; font-size: 12px; font-weight: 600;">Operational Machines</small>
+      </div>
+    </div>
+  </div>
+
+  <!-- Workforce -->
+  <div class="col-xl-3 col-md-6">
+    <div class="kpi-tile">
+      <div class="kpi-icon-box" style="background: #F3E8FF; color: #7E22CE;">👥</div>
+      <div>
+        <strong style="font-size: 22px; font-weight: 800; color: #1E293B; line-height: 1.1; display: block;">{{ counts.employees }}</strong>
+        <small style="color: #64748B; font-size: 12px; font-weight: 600;">Registered Workforce</small>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Middle Section: Chart on Left, Exceptions & Quality on Right -->
+<div class="row g-3 mt-1">
+  <div class="col-lg-8">
+    <div class="panel" style="border-radius: 12px; border: 1px solid #E2E8F0; padding: 20px;">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 style="font-size: 16px; font-weight: 700; color: #1E293B; margin: 0;">
+          📊 Factory Operations Overview
+        </h2>
+        <span class="badge bg-light text-muted border">Live Operations</span>
+      </div>
+      <canvas id="ownerChart" height="135"></canvas>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="panel" style="border-radius: 12px; border: 1px solid #E2E8F0; padding: 20px; height: 100%;">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 style="font-size: 16px; font-weight: 700; color: #1E293B; margin: 0;">
+          ⚠️ Operational Alerts
+        </h2>
+        <span class="badge bg-warning text-dark">Attention Required</span>
+      </div>
+
+      <div class="activity-list">
+        <div class="activity-item p-2 mb-2 rounded bg-light border-start border-3 border-danger">
+          <div>
+            <strong style="color: #991B1B; font-size: 13.5px;">{{ operational.held_batches }} Held Batches</strong>
+            <small style="color: #64748B; display: block;">Quality release inspection required</small>
+          </div>
+        </div>
+
+        <div class="activity-item p-2 mb-2 rounded bg-light border-start border-3 border-warning">
+          <div>
+            <strong style="color: #92400E; font-size: 13.5px;">{{ operational.pending_inspections }} Pending QC Inspections</strong>
+            <small style="color: #64748B; display: block;">Sensory &amp; packaging quality queue</small>
+          </div>
+        </div>
+
+        <div class="activity-item p-2 mb-2 rounded bg-light border-start border-3 border-warning">
+          <div>
+            <strong style="color: #92400E; font-size: 13.5px;">{{ operational.open_work_orders }} Open Work Orders</strong>
+            <small style="color: #64748B; display: block;">Preventive maintenance schedule</small>
+          </div>
+        </div>
+
+        <div class="activity-item p-2 rounded bg-light border-start border-3 border-info">
+          <div>
+            <strong style="color: #1E40AF; font-size: 13.5px;">{{ operational.pending_adjustments }} Pending Adjustments</strong>
+            <small style="color: #64748B; display: block;">Warehouse inventory approvals</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Secondary Metrics: Orders, Invoices, Dispatch & Receivables -->
+<div class="row g-3 mt-1">
+  <div class="col-md-3">
+    <div class="kpi-tile">
+      <div class="kpi-icon-box" style="background: #F1F5F9; color: #334155;">📦</div>
+      <div>
+        <strong style="font-size: 20px; font-weight: 800; color: #1E293B; line-height: 1.1; display: block;">{{ operational.submitted_orders }}</strong>
+        <small style="color: #64748B; font-size: 11.5px; font-weight: 600;">Submitted Orders</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="kpi-tile">
+      <div class="kpi-icon-box" style="background: #F1F5F9; color: #334155;">📄</div>
+      <div>
+        <strong style="font-size: 20px; font-weight: 800; color: #1E293B; line-height: 1.1; display: block;">{{ operational.outstanding_invoices }}</strong>
+        <small style="color: #64748B; font-size: 11.5px; font-weight: 600;">Active Invoices</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="kpi-tile">
+      <div class="kpi-icon-box" style="background: #F1F5F9; color: #334155;">🚚</div>
+      <div>
+        <strong style="font-size: 20px; font-weight: 800; color: #1E293B; line-height: 1.1; display: block;">{{ operational.awaiting_dispatch }}</strong>
+        <small style="color: #64748B; font-size: 11.5px; font-weight: 600;">Awaiting Dispatch</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="kpi-tile" style="border-left: 4px solid #10B981;">
+      <div class="kpi-icon-box" style="background: #ECFDF5; color: #059669;">💰</div>
+      <div>
+        <strong style="font-size: 20px; font-weight: 800; color: #059669; line-height: 1.1; display: block;">{{ operational.receivable | rupees }}</strong>
+        <small style="color: #64748B; font-size: 11.5px; font-weight: 600;">Total Receivables</small>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Quick Operations Launchpad -->
+<div class="panel mt-3" style="border-radius: 12px; border: 1px solid #E2E8F0; padding: 18px 20px;">
+  <div class="d-flex justify-content-between align-items-center mb-2">
+    <h2 style="font-size: 15px; font-weight: 700; color: #1E293B; margin: 0;">
+      ⚡ Quick Department Navigation
+    </h2>
+    <span style="font-size: 12px; color: #64748B;">Instant Access</span>
+  </div>
+  <div class="d-flex flex-wrap gap-2 mt-2">
+    <a class="dock-btn" href="{{ url_for('modules.production_dashboard') }}">
+      ▶ Production Planning
+    </a>
+    <a class="dock-btn" href="{{ url_for('modules.quality_dashboard') }}">
+      ✓ Quality Control
+    </a>
+    <a class="dock-btn" href="{{ url_for('modules.inventory_dashboard') }}">
+      ▦ Inventory &amp; Stock
+    </a>
+    <a class="dock-btn" href="{{ url_for('modules.sales_dashboard') }}">
+      $ Sales &amp; Orders
+    </a>
+    <a class="dock-btn" href="{{ url_for('modules.dispatch_dashboard') }}">
+      ▸ Dispatch &amp; Logistics
+    </a>
+    <a class="dock-btn" href="{{ url_for('modules.module_dashboard', slug='finance') }}">
+      ▤ Financial Accounts
+    </a>
+    <a class="dock-btn" href="{{ url_for('modules.reports_dashboard') }}">
+      ≡ Factory Reports
+    </a>
+    <a class="dock-btn" href="{{ url_for('voice.library') }}" style="background: #EFF6FF; color: #1D4ED8; border-color: #BFDBFE;">
+      🎙️ Voice Records Library
+    </a>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script>
+new Chart(document.getElementById('ownerChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Active Batches', 'Sales Orders', 'Invoices', 'Dispatches', 'Work Orders', 'Audit Logs'],
+    datasets: [{
+      data: [
+        {{ operational.active_batches }},
+        {{ counts.orders }},
+        {{ counts.invoices }},
+        {{ operational.awaiting_dispatch }},
+        {{ operational.open_work_orders }},
+        {{ operational.audit_entries }}
+      ],
+      backgroundColor: ['#0D9488', '#2563EB', '#10B981', '#F59E0B', '#8B5CF6', '#64748B'],
+      borderRadius: 6
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { display: false }
+    },
+    scales: {
+      y: { beginAtZero: true, grid: { color: '#F1F5F9' } },
+      x: { grid: { display: false } }
+    }
+  }
+});
+</script>
+{% endblock %}

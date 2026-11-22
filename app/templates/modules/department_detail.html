@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block title %}{{ department.name }}{% endblock %}
+{% block content %}
+<div class="page-heading">
+  <div><p class="eyebrow"><a href="{{ url_for('modules.factory_layout') }}">Factory Map</a> / Department</p><h1>{{ department.name }}</h1></div>
+  <div class="d-flex gap-2">
+    <a class="btn btn-secondary-soft" href="{{ url_for('voice.record',department_id=department.id,location_id=department.code,module='General',record_type='Department',record_id=department.id) }}">Record Voice Note</a>
+    {% if 'OWNER' in session.roles %}<a class="btn btn-primary" href="{{ url_for('modules.department_edit', department_id=department.id) }}">Edit Department</a>{% endif %}
+  </div>
+</div>
+<div class="row g-3">
+  <div class="col-md-3"><div class="kpi-card"><div><small>Department ID</small><strong>{{ department.code }}</strong></div></div></div>
+  <div class="col-md-3"><div class="kpi-card"><div><small>Status</small><strong>{{ department.status }}</strong></div></div></div>
+  <div class="col-md-3"><div class="kpi-card"><div><small>Daily target</small><strong>{{ target }} batches</strong></div></div></div>
+  <div class="col-md-3"><div class="kpi-card"><div><small>Production batches</small><strong>{{ batch_count }}</strong></div></div></div>
+</div>
+<div class="row g-3 mt-3">
+  <div class="col-lg-8"><div class="panel"><h2>Department resources</h2><table class="table"><tbody><tr><th>Assigned machines</th><td>{{ machine_count }}</td></tr><tr><th>Assigned workers</th><td>{{ worker_count }}</td></tr><tr><th>Products</th><td>{{ products|map(attribute='name')|join(', ') or 'Not assigned' }}</td></tr><tr><th>Quality inspections</th><td>{{ inspection_count }}</td></tr><tr><th>Dispatch records</th><td>{{ dispatch_count }}</td></tr></tbody></table></div></div>
+  <div class="col-lg-4"><div class="panel"><h2>Recent activity</h2><p class="text-muted mb-0">No department activity has been configured yet.</p></div></div>
+</div>
+{% endblock %}
