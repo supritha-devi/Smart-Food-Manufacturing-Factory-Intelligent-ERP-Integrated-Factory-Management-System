@@ -5,6 +5,19 @@
 
 https://Supritha07.pythonanywhere.com
 
+login 
+(owner)
+mail-owner@smartfactory.com
+password-owner@123
+
+(Production Supervisor)
+mail-supervisor@smartfactory.com
+password-Supervisor@123
+
+(Quality Control Chemist)
+mail-qc@smartfactory.com
+password-Quality@123
+
 
 **A Centralized, Automated and Intelligent Enterprise Resource Planning Platform for Food Manufacturing Industries.**
 
