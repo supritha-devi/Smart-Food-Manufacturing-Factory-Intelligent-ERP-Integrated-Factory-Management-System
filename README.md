@@ -11,6 +11,14 @@ login
 mail-owner@smartfactory.com
 password-owner@123
 
+(sales person 1)
+mail-sales1@smartfactory.com
+password-Sales1@123
+
+(sales person 2)
+mail-sales2@smartfactory.com
+password-Sales2@456
+
 (Production Supervisor)
 mail-supervisor@smartfactory.com
 password-Supervisor@123
